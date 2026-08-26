@@ -30,8 +30,11 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
+# ...except the documented template. README tells people to copy it, so it has
+# to actually be in the repository. It holds placeholders only.
+!.env.example
 
 # vercel
 .vercel

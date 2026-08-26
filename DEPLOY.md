@@ -104,6 +104,45 @@ Other free options: [`js.org`](https://github.com/js-org/js.org) (same PR
 model), or [`eu.org`](https://nic.eu.org/) for an actual free domain — approval
 takes weeks.
 
+## 6. Transactional email (5 minutes + DNS wait)
+
+Without this, password reset returns a clear 503 and is unavailable. The app
+does not pretend to send. But a locked-out person has no way back in, and App
+Review will tap "Forgot password" and find an error.
+
+1. Create a [Resend](https://resend.com) account. Free tier is 3,000 emails a
+   month with no card (check their pricing page for the current daily cap).
+2. **Domains → Add Domain.** Use a subdomain you only send from, e.g.
+   `send.your-domain` — keeps sending reputation separate from your main domain.
+3. Add the DNS records Resend shows you (a DKIM `TXT`, plus `MX` and `TXT` for
+   the sending subdomain) at whoever hosts your DNS. Wait for it to verify.
+4. **API Keys → Create API Key**, permission **Sending access**, scoped to that
+   domain. The key starts `re_` and is shown once — copy it now.
+5. In Vercel: **Settings → Environment Variables**, add both, then redeploy.
+
+```
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxx
+MAIL_FROM=SelfMastery <hello@send.your-domain>
+```
+
+Verify against the deployment:
+
+```bash
+curl -s https://your-domain/api/mobile/v1/health | grep email
+```
+
+`"email": true` means configured. The smoke test then asserts a 200 from
+forgot-password instead of a 503:
+
+```bash
+API_BASE=https://your-domain ./scripts/mobile-api-smoke.sh
+```
+
+**Skipping domain verification does not work.** Resend's shared test sender
+`onboarding@resend.dev` only delivers to the address you signed up with, so
+every other user's reset silently goes nowhere — the exact failure the 503 was
+written to avoid.
+
 ---
 
 ## Staying inside the free tiers
@@ -125,8 +164,10 @@ the code changes.
 The app is functional and safe for personal use, but a few things are worth
 knowing:
 
-- **No email verification.** Anyone can sign up with any address. There is no
-  password reset, so a forgotten password means a new account.
+- **No email verification.** Anyone can sign up with any address.
+- **Password reset needs step 6.** Until `RESEND_API_KEY` and `MAIL_FROM` are
+  set, the endpoint returns 503 and says so; a forgotten password means a new
+  account.
 - **Rate limiting is in place** (step 2) but only if you set the two Upstash
   variables. Without them the app still runs, and warns in the logs that
   sign-up is unthrottled.
