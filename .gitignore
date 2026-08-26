@@ -51,3 +51,13 @@ ios/build/
 ios/DerivedData/
 *.xcuserstate
 xcuserdata/
+
+# fastlane
+ios/fastlane/report.xml
+ios/fastlane/Preview.html
+ios/fastlane/test_output/
+ios/fastlane/private_keys/
+ios/build/
+ios/Gemfile.lock
+# App Store Connect API keys are issued once and cannot be re-downloaded.
+**/AuthKey_*.p8

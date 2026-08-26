@@ -1,0 +1,11 @@
+# Identity for App Store Connect.
+#
+# Both values are read from the environment so nothing account-specific is
+# committed, and so a different developer (or CI) can run these lanes without
+# editing the file.
+app_identifier ENV["SELFMASTERY_BUNDLE_ID"] || "com.yourcompany.selfmastery"
+team_id ENV["SELFMASTERY_TEAM_ID"] || "F5MY9BC25S"
+
+# Not set: apple_id. Authentication goes through an App Store Connect API key
+# (see Fastfile), which avoids interactive two-factor prompts and is the only
+# thing that works unattended.

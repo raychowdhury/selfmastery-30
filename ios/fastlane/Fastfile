@@ -1,0 +1,104 @@
+# SelfMastery release lanes.
+#
+# Authentication uses an App Store Connect API key rather than an Apple ID, so
+# nothing prompts for two-factor and the same lanes work on CI. Create one at
+# App Store Connect → Users and Access → Integrations → App Store Connect API,
+# then export:
+#
+#   ASC_KEY_ID=XXXXXXXXXX
+#   ASC_ISSUER_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+#   ASC_KEY_PATH=~/private_keys/AuthKey_XXXXXXXXXX.p8
+#
+# The .p8 is issued once and cannot be downloaded again. Keep it out of the
+# repository — .gitignore already excludes fastlane/private_keys.
+
+default_platform(:ios)
+
+APP_ID = ENV["SELFMASTERY_BUNDLE_ID"] || "com.yourcompany.selfmastery"
+
+platform :ios do
+  before_all do
+    # Regenerate the project so the bundle id, team and API URL in the build
+    # match what these lanes are about to ship.
+    sh("./generate.sh")
+  end
+
+  desc "Authenticate with App Store Connect"
+  private_lane :authenticate do
+    app_store_connect_api_key(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      key_filepath: File.expand_path(ENV.fetch("ASC_KEY_PATH")),
+      in_house: false
+    )
+  end
+
+  desc "Run the test suite"
+  lane :test do
+    run_tests(
+      project: "SelfMastery.xcodeproj",
+      scheme: "SelfMastery",
+      devices: ["iPhone 17"]
+    )
+  end
+
+  desc "Build and upload a build to TestFlight"
+  lane :beta do
+    authenticate
+
+    # Fails early rather than after a five-minute archive.
+    ensure_release_config
+
+    increment_build_number(
+      build_number: latest_testflight_build_number(app_identifier: APP_ID) + 1,
+      xcodeproj: "SelfMastery.xcodeproj"
+    )
+
+    build_app(
+      project: "SelfMastery.xcodeproj",
+      scheme: "SelfMastery",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "build",
+      clean: true
+    )
+
+    upload_to_testflight(
+      app_identifier: APP_ID,
+      skip_waiting_for_build_processing: true,
+      # Beta App Review is only needed for external testers; internal testing
+      # starts as soon as processing finishes.
+      distribute_external: false
+    )
+
+    UI.success("Uploaded. Work through docs/app-store/TESTFLIGHT_CHECKLIST.md before inviting anyone.")
+  end
+
+  desc "Upload metadata and screenshots (no binary)"
+  lane :metadata do
+    authenticate
+
+    upload_to_app_store(
+      app_identifier: APP_ID,
+      skip_binary_upload: true,
+      skip_screenshots: false,
+      # Never submits. Pressing submit stays a human decision.
+      submit_for_review: false,
+      force: true,
+      precheck_include_in_app_purchases: false
+    )
+
+    UI.success("Metadata and screenshots uploaded. Review them in App Store Connect before submitting.")
+  end
+
+  desc "Refuse to ship a build pointed at the wrong backend"
+  private_lane :ensure_release_config do
+    url = ENV["SELFMASTERY_API_URL"] || ""
+    UI.user_error!("SELFMASTERY_API_URL must be set to your production HTTPS backend") unless url.start_with?("https://")
+    UI.user_error!("SELFMASTERY_API_URL still points at localhost") if url.include?("localhost")
+
+    if APP_ID == "com.yourcompany.selfmastery"
+      UI.user_error!("SELFMASTERY_BUNDLE_ID is still the placeholder. Set it to your registered identifier.")
+    end
+  end
+end

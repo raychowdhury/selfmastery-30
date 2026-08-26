@@ -33,6 +33,60 @@ strings "$REL/SelfMastery" | grep -c localhost        # must be 0
 ls "$REL/PrivacyInfo.xcprivacy"                       # must exist
 ```
 
+## Automated release (fastlane)
+
+Everything mechanical is scripted. What is left for you is genuinely a human
+decision.
+
+### One-time setup
+
+```bash
+cd ios
+bundle install                    # installs fastlane from the Gemfile
+```
+
+Create an **App Store Connect API key** (App Store Connect → Users and Access →
+Integrations → App Store Connect API, role: App Manager). The `.p8` is issued
+once and cannot be downloaded again — store it outside the repository.
+
+```bash
+export ASC_KEY_ID=XXXXXXXXXX
+export ASC_ISSUER_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+export ASC_KEY_PATH=~/private_keys/AuthKey_XXXXXXXXXX.p8
+
+export SELFMASTERY_BUNDLE_ID=com.yourname.selfmastery
+export SELFMASTERY_TEAM_ID=F5MY9BC25S
+export SELFMASTERY_API_URL=https://your-production-domain
+```
+
+API-key auth is used rather than an Apple ID so nothing prompts for two-factor
+and the same lanes work unattended on CI.
+
+### Lanes
+
+```bash
+bundle exec fastlane test        # run the test suite
+bundle exec fastlane beta        # bump build, archive, sign, upload to TestFlight
+bundle exec fastlane metadata    # upload metadata + the six screenshots
+```
+
+`beta` refuses to run if the API URL is missing, points at localhost, or the
+bundle identifier is still the placeholder — failing in a second beats failing
+after a five-minute archive.
+
+**Neither lane submits for review.** That stays a deliberate manual press in App
+Store Connect, after the TestFlight checklist passes.
+
+### What fastlane uploads
+
+Metadata lives in `ios/fastlane/metadata/en-US/` and screenshots in
+`ios/fastlane/screenshots/en-US/`. Both are checked in, so a release is
+reproducible and metadata changes show up in a diff.
+
+Three files still contain `[YOUR-DOMAIN]` / `[YOUR LEGAL ENTITY]`:
+`support_url.txt`, `marketing_url.txt`, `privacy_url.txt` and
+`metadata/copyright.txt`. Fill them before running the `metadata` lane.
+
 ## Archiving
 
 1. Xcode → **Product → Archive** (scheme is already set to Release for archive).

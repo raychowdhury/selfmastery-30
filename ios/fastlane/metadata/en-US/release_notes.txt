@@ -1,0 +1,3 @@
+The first release of SelfMastery.
+
+One meaningful goal, thirty days, and a small set of actions each day. Includes Minimum Day for the days that don't go to plan, weekly reviews that adjust the week ahead, and a Day 30 summary of what actually changed.

@@ -1,0 +1,19 @@
+# Metadata upload configuration.
+#
+# `submit_for_review` is deliberately absent: these lanes prepare a release,
+# they never press the final button.
+
+app_identifier ENV["SELFMASTERY_BUNDLE_ID"] || "com.yourcompany.selfmastery"
+
+# Categories, reasoned through in docs/app-store/APP_STORE_METADATA.md.
+primary_category "MZGenre.Productivity"
+secondary_category "MZGenre.Lifestyle"
+
+# The app has no monetisation in 1.0.
+price_tier 0
+
+submission_information({
+  add_id_info_uses_idfa: false,
+  export_compliance_uses_encryption: false,
+  content_rights_contains_third_party_content: false
+})
