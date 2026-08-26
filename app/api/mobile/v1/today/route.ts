@@ -1,4 +1,4 @@
-import { apiError, apiOk, handler, requireUser } from "@/lib/api/http";
+import { apiOk, handler, requireUser } from "@/lib/api/http";
 import { buildTodayPayload } from "@/lib/api/payloads";
 
 export const GET = handler(async (request) => {
