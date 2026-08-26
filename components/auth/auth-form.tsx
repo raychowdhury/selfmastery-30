@@ -89,6 +89,12 @@ export function AuthForm({ mode, action, next }: AuthFormProps) {
         <SubmitButton label={isSignUp ? "Create my account" : "Sign in"} />
       </form>
 
+      {isSignUp ? null : (
+        <p className="text-muted mt-4 mb-0 text-center text-[13px]">
+          <Link href="/forgot-password">Forgotten your password?</Link>
+        </p>
+      )}
+
       <p className="text-muted mt-6 mb-0 text-center text-[13px]">
         {isSignUp ? "Already have an account? " : "New here? "}
         <Link href={isSignUp ? "/sign-in" : "/sign-up"}>

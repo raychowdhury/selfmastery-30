@@ -82,9 +82,53 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  accounts   Account[]
-  sessions   Session[]
-  challenges Challenge[]
+  accounts            Account[]
+  sessions            Session[]
+  challenges          Challenge[]
+  deviceSessions      DeviceSession[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+/// Bearer token for a native client.
+///
+/// Deliberately opaque and server-side rather than a JWT: sign-out and account
+/// deletion have to revoke access immediately, and a self-contained token
+/// cannot be withdrawn before it expires.
+model DeviceSession {
+  id String @id @default(cuid())
+
+  userId String
+
+  /// SHA-256 of the bearer token. The token itself is never stored, so a
+  /// database leak does not hand over live sessions.
+  tokenHash String @unique
+
+  deviceName String?
+  platform   String @default("ios")
+
+  lastUsedAt DateTime @default(now())
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// Single-use password reset token. Stored hashed, like a device session.
+model PasswordResetToken {
+  id String @id @default(cuid())
+
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 /// Present so an OAuth provider (Google) can be added later without a migration.
