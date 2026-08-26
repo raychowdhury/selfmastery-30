@@ -25,6 +25,17 @@ swipe past them.
 | 5 | Reflect. Adjust. Improve. | Weekly review | The difficulty question and the line about nothing completed being changed. |
 | 6 | See what changed in 30 days. | Day 30 | Real final numbers and the original goal. |
 
+## Already captured
+
+Six frames are in `docs/app-store/screenshots/`, all 1320×2868 from an iPhone 17
+Pro Max simulator with the status bar normalised, all showing real app output:
+
+`01-welcome` · `02-today` · `03-minimum-day` · `04-progress` · `05-calendar` ·
+`06-day30`
+
+Re-capture with the steps below if the UI changes. Framing artwork with the
+headlines from `SCREENSHOT_COPY.md` is optional and still manual.
+
 ## Capturing
 
 Use a **dedicated screenshot account**, not the App Review demo account, so its

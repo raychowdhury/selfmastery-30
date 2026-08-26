@@ -7,7 +7,7 @@
 #
 # Creates throwaway accounts and deletes them again, so it is safe to re-run
 # against a development database. Never point it at production.
-set -uo pipefail
+set -o pipefail
 B="${API_BASE:-http://localhost:3000}/api/mobile/v1"
 EMAIL="apitest-$RANDOM@example.com"
 pass() { printf "  \033[32m✓\033[0m %s\n" "$1"; }
@@ -107,8 +107,21 @@ CODE=$(curl -s -o /dev/null -w '%{http_code}' -X PUT $B/days/$DAY_ID/minimum -H 
 [ "$CODE" = "404" ] && pass "other user cannot touch day (404)" || fail "cross-user day isolation" "got $CODE"
 
 echo "== forgot password =="
-chk "forgot-password 200" 200 "$(curl -s -o /dev/null -w '%{http_code}' -X POST $B/auth/forgot-password -H 'content-type: application/json' -d "{\"email\":\"$EMAIL\"}")" ""
-chk "forgot-password unknown email also 200" 200 "$(curl -s -o /dev/null -w '%{http_code}' -X POST $B/auth/forgot-password -H 'content-type: application/json' -d '{"email":"nobody-here@example.com"}')" ""
+# Behaviour depends on whether transactional email is configured. Both outcomes
+# are correct; silently returning success without sending would not be.
+MAIL_READY=$(curl -s $B/health | python3 -c "import sys,json;print(json.load(sys.stdin)['checks']['email'])" 2>/dev/null)
+CODE_KNOWN=$(curl -s -o /dev/null -w '%{http_code}' -X POST $B/auth/forgot-password -H 'content-type: application/json' -d "{\"email\":\"$EMAIL\"}")
+CODE_UNKNOWN=$(curl -s -o /dev/null -w '%{http_code}' -X POST $B/auth/forgot-password -H 'content-type: application/json' -d '{"email":"nobody-here@example.com"}')
+
+if [ "$MAIL_READY" = "True" ]; then
+  chk "forgot-password 200 (mail configured)" 200 "$CODE_KNOWN" ""
+  chk "no account enumeration: unknown email also 200" 200 "$CODE_UNKNOWN" ""
+else
+  chk "forgot-password 503 (mail not configured)" 503 "$CODE_KNOWN" ""
+  chk "503 for unknown email too" 503 "$CODE_UNKNOWN" ""
+  printf "  \033[33m!\033[0m mail is not configured — password reset is unavailable by design.\n"
+  printf "    Set RESEND_API_KEY and MAIL_FROM before release. See DEPLOY.md.\n"
+fi
 
 echo "== account deletion =="
 chk "delete wrong password 403" 403 "$(curl -s -o /dev/null -w '%{http_code}' -X DELETE $B/account -H "authorization: Bearer $TOKEN" -H 'content-type: application/json' -d '{"password":"nope"}')" ""
@@ -122,4 +135,8 @@ chk "token dead after sign-out 401" 401 "$(curl -s -o /dev/null -w '%{http_code}
 
 curl -s -o /dev/null -X DELETE $B/account -H "authorization: Bearer $T2" -H 'content-type: application/json' -d '{"password":"thirtydays2026"}'
 echo
-[ -n "$FAILED" ] && echo "SOME CHECKS FAILED" || echo "ALL API CHECKS PASSED"
+if [ -n "${FAILED:-}" ]; then
+  echo "SOME CHECKS FAILED"
+  exit 1
+fi
+echo "ALL API CHECKS PASSED"

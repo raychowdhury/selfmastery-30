@@ -20,19 +20,23 @@ SIZE = 1024
 SS = 4  # supersampling factor
 N = SIZE * SS
 
-BG_TOP = (0x1C, 0x1F, 0x48)
-BG_BOTTOM = (0x10, 0x11, 0x20)
-TRACK = (0x3A, 0x36, 0x5C)
-ACCENT = (0x9C, 0x8F, 0xE4)
+# A diagonal ground rather than a vertical one: it gives the mark depth without
+# reading as a gradient-heavy icon at thumbnail size.
+BG_TOP = (0x2A, 0x2C, 0x5E)
+BG_BOTTOM = (0x0D, 0x0E, 0x1B)
+TRACK = (0x43, 0x3E, 0x66)
+ACCENT = (0xA6, 0x99, 0xEE)
+ACCENT_DEEP = (0x7A, 0x6C, 0xC8)
 
 CENTRE = N / 2
-RADIUS = N * 0.30
-THICKNESS = N * 0.085
+RADIUS = N * 0.295
+# Thicker than looks right at full size — below 60px a thin ring disappears.
+THICKNESS = N * 0.105
 
 # Leave a gap at the bottom so the ring reads as a path, not a closed circle.
-START_ANGLE = math.radians(130)
-SWEEP = math.radians(280)
-PROGRESS = 0.72
+START_ANGLE = math.radians(132)
+SWEEP = math.radians(276)
+PROGRESS = 0.68
 
 
 def blend(base, colour, alpha):
@@ -52,16 +56,23 @@ def render():
 
     head_angle = START_ANGLE + SWEEP * PROGRESS
     head = (CENTRE + RADIUS * math.cos(head_angle), CENTRE + RADIUS * math.sin(head_angle))
+    tail = (CENTRE + RADIUS * math.cos(START_ANGLE), CENTRE + RADIUS * math.sin(START_ANGLE))
+    track_end_angle = START_ANGLE + SWEEP
+    track_end = (
+        CENTRE + RADIUS * math.cos(track_end_angle),
+        CENTRE + RADIUS * math.sin(track_end_angle),
+    )
 
     for y in range(N):
         row = bytearray()
-        gradient = y / (N - 1)
-        background = blend(BG_TOP, BG_BOTTOM, gradient)
 
         for x in range(N):
             dx, dy = x - CENTRE, y - CENTRE
             distance = math.hypot(dx, dy)
-            pixel = background
+
+            # Diagonal ground, brightest at the top-left.
+            gradient = min(1.0, max(0.0, (x + y) / (2 * (N - 1))))
+            pixel = blend(BG_TOP, BG_BOTTOM, gradient)
 
             # Ring band: inside the annulus and within the swept angle.
             band = min(coverage(distance, outer, soft), coverage(inner, distance, soft))
@@ -69,14 +80,32 @@ def render():
                 angle = math.atan2(dy, dx) % (2 * math.pi)
                 delta = (angle - START_ANGLE) % (2 * math.pi)
                 if delta <= SWEEP:
-                    filled = delta <= SWEEP * PROGRESS
-                    pixel = blend(pixel, ACCENT if filled else TRACK, band)
+                    if delta <= SWEEP * PROGRESS:
+                        # The filled arc deepens as it travels, so the head of
+                        # the progress reads as the leading edge.
+                        travel = delta / (SWEEP * PROGRESS)
+                        colour = blend(ACCENT_DEEP, ACCENT, travel)
+                    else:
+                        colour = TRACK
+                    pixel = blend(pixel, colour, band)
 
-            # Rounded head of the progress arc.
-            head_distance = math.hypot(x - head[0], y - head[1])
-            cap = coverage(head_distance, THICKNESS / 2, soft)
+            # Rounded caps at both ends, so the arc reads as a drawn stroke
+            # rather than a wedge cut out of a disc.
+            cap = coverage(math.hypot(x - head[0], y - head[1]), THICKNESS / 2, soft)
             if cap > 0:
                 pixel = blend(pixel, ACCENT, cap)
+
+            tail_cap = coverage(math.hypot(x - tail[0], y - tail[1]), THICKNESS / 2, soft)
+            if tail_cap > 0:
+                pixel = blend(pixel, ACCENT_DEEP, tail_cap)
+
+            # The unfilled track gets a cap too, or its end reads as a chipped
+            # wedge rather than the far end of the same stroke.
+            track_cap = coverage(
+                math.hypot(x - track_end[0], y - track_end[1]), THICKNESS / 2, soft
+            )
+            if track_cap > 0:
+                pixel = blend(pixel, TRACK, track_cap)
 
             row += bytes(pixel)
         rows.append(bytes(row))

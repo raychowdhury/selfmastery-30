@@ -10,6 +10,18 @@ const RESEND_ENDPOINT = "https://api.resend.com/emails";
 
 export type MailResult = "sent" | "not-configured" | "failed";
 
+/**
+ * Whether transactional email can actually be delivered.
+ *
+ * Callers check this *before* offering a flow that depends on email. A password
+ * reset that silently drops the message is worse than one that admits it is
+ * unavailable: the person waits for a mail that will never arrive, and is
+ * locked out of their account.
+ */
+export function isMailConfigured(): boolean {
+  return Boolean(process.env.RESEND_API_KEY && process.env.MAIL_FROM);
+}
+
 function siteUrl(): string {
   return (
     process.env.NEXT_PUBLIC_SITE_URL ??

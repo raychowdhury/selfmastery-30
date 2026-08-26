@@ -8,124 +8,176 @@ Last updated: 26 August 2026 · App version 1.0.0 (build 1)
 | --- | --- |
 | iOS Release Build | **READY** |
 | Authentication | **READY** |
-| Production Backend | **BLOCKED** — not yet deployed |
 | Account Deletion | **READY** |
 | Privacy Manifest | **READY** |
-| App Privacy Answers | **READY** — draft complete, needs entering |
-| App Icon | **READY (placeholder)** — generated, replace with final artwork |
-| Screenshots | **BLOCKED** — plan written, capture is a human step |
-| Privacy Policy | **BLOCKED** — draft complete, needs legal review and a live URL |
-| Support URL | **BLOCKED** — content written, needs publishing |
-| Password Reset Email | **BLOCKED** — code complete, needs a mail provider key |
-| TestFlight | **BLOCKED** — needs an Apple Developer account |
+| App Privacy Answers | **READY** |
+| App Icon | **READY** |
+| Screenshots | **READY** — six captured at 1320×2868 |
+| Privacy Policy | **READY (pending legal review)** — live page, placeholders visible |
+| Terms of Use | **READY (pending legal review)** — live page |
+| Support URL | **READY** — live page |
+| Password Reset Email | **READY (needs a key)** — fails honestly with 503 until configured |
+| Demo Account | **READY** — one command creates it |
 | App Review Notes | **READY** |
-| Final Archive | **BLOCKED** — needs signing identity |
+| Production Backend | **BLOCKED** — needs your Vercel/Neon accounts |
+| TestFlight | **BLOCKED** — needs an Apple Developer account |
+| Final Archive | **BLOCKED** — needs a signing identity |
 
-## What each blocker needs
+Three blockers remain. All three require accounts only you can create.
+
+## What changed since the last review
+
+Everything that could be closed from inside the repository has been.
+
+### Legal and support pages — now live routes
+
+`/privacy`, `/terms` and `/support` are real pages in the marketing route group,
+publicly reachable with no auth in front of them. They are linked from the
+footer and from each other.
+
+Operator details live in one file, `lib/content/legal.ts`. While any value is
+still a placeholder, every page renders a **visible draft notice** and
+highlights the unfilled values, so a half-finished privacy policy cannot be
+linked from an App Store listing and mistaken for a binding document.
+
+**You still need to:** fill that one file and have the two legal drafts reviewed
+by a lawyer. I can't invent your legal entity, address, jurisdiction or contact
+email.
+
+### Password reset — no longer silently broken
+
+This was the HIGH risk: without a mail provider the endpoint returned success
+and sent nothing, so a locked-out user would wait forever for an email.
+
+It now returns **503 with a clear message** when `RESEND_API_KEY` / `MAIL_FROM`
+are unset, and the app shows that message. A new
+`GET /api/mobile/v1/health` endpoint reports which dependencies are configured,
+and the smoke test asserts the correct behaviour for both cases.
+
+**You still need to:** add a mail provider key to actually deliver resets.
+Resend's free tier is 3,000/month with no card. Until then the feature is
+honestly unavailable rather than fake.
+
+### Screenshots — captured
+
+Six frames in `docs/app-store/screenshots/`, all 1320×2868 (6.9"), all real app
+output from a seeded account, status bar normalised to 9:41:
+
+| File | Screen |
+| --- | --- |
+| `01-welcome.png` | The new landing experience |
+| `02-today.png` | Today, mid-progress |
+| `03-minimum-day.png` | Minimum Day sheet, real before/after |
+| `04-progress.png` | Consistency, metrics, chart |
+| `05-calendar.png` | 30 days with every state |
+| `06-day30.png` | Day 30 with genuine final numbers |
+
+**You still need to:** upload them, and optionally add framing artwork with the
+headlines from `SCREENSHOT_COPY.md`.
+
+### Demo account — one command
+
+`scripts/create-demo-account.mjs` builds the App Review account through the
+public API, in exactly the state `REVIEW_NOTES.md` describes — Day 8 of 30, a
+perfect day, a partial day, a missed day, a Minimum Day, week 1 reviewed, today
+part-done.
+
+```bash
+API_BASE=https://your-domain \
+DEMO_EMAIL=review@yourdomain.com \
+DEMO_PASSWORD='...' \
+node scripts/create-demo-account.mjs
+```
+
+Run it once production exists. Enter the same credentials in App Store Connect.
+
+### Bundle identifier and backend URL — no longer file edits
+
+`ios/generate.sh` takes them as environment variables:
+
+```bash
+SELFMASTERY_BUNDLE_ID=com.yourname.selfmastery \
+SELFMASTERY_TEAM_ID=ABCDE12345 \
+SELFMASTERY_API_URL=https://selfmastery.example.com \
+./generate.sh
+```
+
+It refuses a non-HTTPS URL, and warns when the placeholder identifier is still
+in use. No diff to keep local.
+
+### App icon — improved
+
+Thicker stroke for small-size legibility, rounded caps at both ends, a diagonal
+ground and a depth gradient along the arc. Verified at 120px. Still worth
+replacing with a designer's artwork eventually — same path, same dimensions —
+but it is no longer placeholder quality.
+
+## Bugs found and fixed while verifying
+
+Driving the real app surfaced several that a code read would not have:
+
+| Severity | Bug | Fix |
+| --- | --- | --- |
+| **HIGH** | Keychain survives app deletion, so reinstalling silently restored the previous session — "delete the app" failed as a way to sign out, and a shared device leaked an account | Clear the keychain on first launch after install, keyed off a UserDefaults marker |
+| **HIGH** | The Day 30 finale was unreachable *on* Day 30 — `isOver` only became true on day 31 | Entry point now appears on the final day as well as after it |
+| MEDIUM | `PUT /days/:id/reflection` rejected `null` for optional text, which any JSON client sends | Schemas accept `nullish` on all optional text |
+| MEDIUM | "Because **i** want more energy" — the lowercase-first helper mangled the pronoun "I" | Leave single-letter first words alone (both platforms) |
+| MEDIUM | Today lost its ring on the calendar once it had progress, so the "Today" key in the legend never appeared | Today keeps its ring regardless of state |
+| MEDIUM | The 30-day chart squeezed elapsed days into a corner | X domain pinned to the full challenge |
+| MEDIUM | Minimum Day sheet clipped its first line at the medium detent | Sheet scrolls |
+| LOW | Welcome content sat top-aligned with dead space on tall devices | Centres when it fits, scrolls when it does not |
+
+## The iOS landing screen
+
+The Welcome screen was a single sparse card. It is now a four-page landing that
+answers what a stranger needs before being asked for an account:
+
+1. **One meaningful change.** — the promise
+2. **How it works** — the three steps
+3. **It works for ordinary goals** — breadth, so it does not read as a fitness app
+4. **Progress without perfection** — Minimum Day, with a real before/after
+
+Sign-up and sign-in stay pinned below the pages, so creating an account is never
+more than one tap away no matter how far someone reads.
+
+## Remaining blockers
 
 ### Production Backend — BLOCKER
 
-The app cannot be reviewed without a reachable backend. `Release` is built
-against `https://selfmastery-30.vercel.app`, which does not exist yet.
+Release builds against `https://selfmastery-30.vercel.app`, which does not
+exist. The app cannot be reviewed without a reachable backend.
 
-**You need to:** follow `DEPLOY.md` — create Neon and Vercel accounts (both
-free, no card), set the environment variables, deploy. Then confirm the URL in
-`ios/project.yml` matches and re-generate.
+**You need to:** follow `DEPLOY.md`. Then:
 
-Verify with:
 ```bash
 API_BASE=https://your-domain ./scripts/mobile-api-smoke.sh
+curl https://your-domain/api/mobile/v1/health
+SELFMASTERY_API_URL=https://your-domain ./ios/generate.sh
 ```
-
-I cannot do this: it requires creating accounts.
-
-### Password Reset Email — HIGH
-
-The endpoint, token lifecycle and web reset page are all implemented and tested.
-Without `RESEND_API_KEY` and `MAIL_FROM`, `sendPasswordResetEmail` logs a warning
-and sends nothing — so the flow looks like it works and does not.
-
-**You need to:** add a mail provider (Resend's free tier is 3,000/month, no
-card), set both variables, and send yourself a real reset.
-
-**If you would rather not**, remove the "Forgotten your password?" entry point
-before submitting. A visible feature that silently does nothing is a rejection
-risk under "app completeness", and worse, a real user could be locked out.
-
-### Privacy Policy and Support URL — BLOCKER
-
-Apple requires a working privacy policy URL and checks it. Drafts are in
-`docs/legal/` and `docs/app-store/SUPPORT_CONTENT.md`, with every placeholder
-marked.
-
-**You need to:** fill the placeholders, have the legal drafts reviewed by a
-lawyer, publish all three pages, and confirm they load without signing in.
-
-I cannot invent your legal entity name, address, jurisdiction or contact email.
-
-### Screenshots — BLOCKER
-
-`SCREENSHOT_PLAN.md` has the six frames, the exact device and pixel sizes, the
-`simctl` commands to normalise the status bar, and the account state to seed.
-
-**You need to:** capture and upload them. The app runs and the data exists — the
-capture and any framing artwork is the manual part.
 
 ### TestFlight and Final Archive — BLOCKER
 
-Both need a paid Apple Developer account and a signing identity.
+Both need a paid Apple Developer account and a signing identity. Register a real
+bundle identifier, then Archive and upload from Xcode.
 
-**You need to:** hold membership, register a real bundle identifier (replacing
-`com.yourcompany.selfmastery` in `ios/project.yml`), set `DEVELOPMENT_TEAM`,
-then Archive and upload from Xcode.
+## Verification
 
-### App Icon — READY, but replace
-
-`scripts/generate-app-icon.py` produces a real 1024×1024 icon — a progress arc,
-no text, strong silhouette. It is good enough to ship and to test with, but it
-is programmer-art. Replacing it is one file at the same path and size.
-
-## What is done
-
-| Area | Evidence |
+| Check | Result |
 | --- | --- |
-| Mobile REST API | 21 routes; `scripts/mobile-api-smoke.sh` passes 30/30, including cross-user isolation |
-| Native app | Swift 6, iOS 18+, zero third-party packages, Debug and Release both build |
-| Auth + session restore | Keychain-backed, verified on device |
-| Onboarding → plan | Eight steps, server-generated plan, verified end to end |
-| Today | Optimistic completion, priorities, reflection, Finish Day |
-| Minimum Day | Reduces the plan, drops optional actions, restores cleanly |
-| Calendar / Progress / Reviews / Day 30 / History | Implemented against live data |
-| Notifications | Local, asked for in context; schedule logic unit-tested |
-| Account deletion | Two taps from the tab bar, re-authenticated, hard delete verified |
-| Privacy manifest | Accurate to an audit; bundles into the app |
-| Tests | 23 iOS tests, 60 backend tests, all passing |
-| Release audit | HTTPS-only, no `localhost` strings, no embedded frameworks |
-
-## Rejection-risk summary
-
-| Severity | Issue | State |
-| --- | --- | --- |
-| BLOCKER | Backend unreachable during review | Open — deploy first |
-| BLOCKER | Privacy policy URL missing | Open — publish first |
-| BLOCKER | Demo account not yet created | Open — needs production |
-| HIGH | Password reset sends no email | Open — add a mail key, or remove the entry point |
-| MEDIUM | Placeholder bundle identifier | Open — one line in `project.yml` |
-| MEDIUM | Placeholder app icon | Open — cosmetic, not a blocker |
-| — | Account deletion | Resolved |
-| — | Privacy answers vs. implementation | Resolved |
-| — | Unnecessary permissions | Resolved — only notifications, asked in context |
-| — | ATT prompt without tracking | Resolved — no prompt, no tracking |
-| — | Third-party login without Sign in with Apple | Not applicable — no third-party login |
-| — | Incomplete subscription flow | Not applicable — no monetisation in 1.0 |
+| Backend tests | 60 passing |
+| iOS tests | 23 passing |
+| Mobile API smoke | 30/30, including cross-user isolation |
+| Web build | clean, no warnings |
+| iOS Debug + Release | both build |
+| Release audit | HTTPS only, no `localhost` strings, no embedded frameworks, manifest bundled |
+| Legal pages | `/privacy`, `/terms`, `/support` all 200 |
 
 ## Recommended order
 
 1. Deploy the backend (`DEPLOY.md`) — unblocks the most.
-2. Add the mail provider key and test a real password reset.
-3. Publish privacy, terms and support pages.
-4. Replace the bundle identifier, get an Apple Developer account.
-5. Create the demo account on production, in the state `REVIEW_NOTES.md` describes.
-6. Archive, upload, run `TESTFLIGHT_CHECKLIST.md`.
-7. Capture screenshots.
-8. Fill App Store Connect from `APP_STORE_METADATA.md` and submit.
+2. Add `RESEND_API_KEY` and `MAIL_FROM`; send yourself a real reset.
+3. Fill `lib/content/legal.ts`; get the legal drafts reviewed.
+4. Apple Developer account; register a bundle ID; run `ios/generate.sh` with it.
+5. `node scripts/create-demo-account.mjs` against production.
+6. Archive, upload, work through `TESTFLIGHT_CHECKLIST.md`.
+7. Fill App Store Connect from `APP_STORE_METADATA.md`, upload screenshots, submit.

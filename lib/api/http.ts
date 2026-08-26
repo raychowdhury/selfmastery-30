@@ -17,7 +17,8 @@ export type ApiErrorCode =
   | "not_found"
   | "conflict"
   | "rate_limited"
-  | "server_error";
+  | "server_error"
+  | "service_unavailable";
 
 const STATUS: Record<ApiErrorCode, number> = {
   bad_request: 400,
@@ -27,6 +28,7 @@ const STATUS: Record<ApiErrorCode, number> = {
   conflict: 409,
   rate_limited: 429,
   server_error: 500,
+  service_unavailable: 503,
 };
 
 export function apiError(

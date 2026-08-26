@@ -48,6 +48,11 @@ final class TodayModel {
 
     var isMinimumDay: Bool { day?.isMinimumDay ?? false }
 
+    /// True on the last day as well as after it.
+    var hasReachedFinalDay: Bool {
+        isOver || dayNumber >= (challenge?.lengthDays ?? 30)
+    }
+
     var remainingLabel: String {
         let remaining = completion.required - completion.completed
         switch remaining {

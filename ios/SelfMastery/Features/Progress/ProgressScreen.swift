@@ -105,7 +105,9 @@ struct ConsistencyChart: View {
             Text("Your 30 days")
                 .font(Theme.Typography.sectionTitle)
                 .accessibilityAddTraits(.isHeader)
-            Text("Each bar is one day. Height is how much of the plan you completed.")
+            // Says what the empty right-hand side means, so a challenge early
+            // on does not look like a broken chart.
+            Text("One bar per day, from Day 1 to Day \(days.count). Height is how much of that day's plan you completed.")
                 .font(Theme.Typography.caption)
                 .foregroundStyle(Theme.Palette.secondaryText)
 
@@ -120,6 +122,10 @@ struct ConsistencyChart: View {
             .chartXAxis(.hidden)
             .chartYAxis(.hidden)
             .chartYScale(domain: 0...100)
+            // Pin the axis to the whole challenge. Left to infer the domain
+            // from the data, the chart squeezes the elapsed days into a corner
+            // and the month never reads as thirty days long.
+            .chartXScale(domain: 0.5...(Double(days.count) + 0.5))
             .frame(height: 120)
             .accessibilityLabel("Daily completion across the challenge")
             .accessibilityValue(summary)
@@ -128,8 +134,8 @@ struct ConsistencyChart: View {
 
     private func colour(for day: CalendarDayDTO) -> Color {
         switch day.dayState {
-        case .future: Theme.Palette.separator.opacity(0.4)
-        case .missed: Theme.Palette.separator
+        case .future: Theme.Palette.secondaryText.opacity(0.28)
+        case .missed: Theme.Palette.secondaryText.opacity(0.55)
         case .minimum: Theme.Palette.accent.opacity(0.55)
         case .perfect: Theme.Palette.accent
         default: Theme.Palette.accent.opacity(0.75)

@@ -261,13 +261,14 @@ export default async function TodayPage() {
   );
 }
 
-/** "I want more energy" → "Because i want…" reads wrong; fix the seam. */
+/** Lowercases the first letter so a sentence can follow "Because ".
+ *  Left alone for acronyms and for a single-letter first word, which is almost
+ *  always "I" — "Because i want more energy" reads as a typo. */
 function lowerFirst(text: string): string {
   const trimmed = text.trim();
   if (!trimmed) return trimmed;
-  // Leave acronyms and proper nouns alone.
-  if (trimmed[0] === trimmed[0].toUpperCase() && trimmed[1] === trimmed[1]?.toUpperCase()) {
-    return trimmed;
-  }
+  if (trimmed[0] !== trimmed[0].toUpperCase()) return trimmed;
+  if (trimmed[1] === trimmed[1]?.toUpperCase() && trimmed[1] !== " ") return trimmed;
+  if (trimmed[1] === " " || trimmed.length === 1) return trimmed;
   return trimmed[0].toLowerCase() + trimmed.slice(1);
 }

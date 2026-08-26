@@ -59,9 +59,16 @@ export default async function MarketingLayout({
         {children}
 
         <footer className="flex flex-col items-start gap-4 py-12 sm:flex-row sm:items-center sm:justify-between sm:py-16">
-          <p className="mb-0 text-[12.5px] text-[var(--color-neutral-600)]">
-            SelfMastery — one meaningful change at a time.
-          </p>
+          <div>
+            <p className="mb-0 text-[12.5px] text-[var(--color-neutral-600)]">
+              SelfMastery — one meaningful change at a time.
+            </p>
+            <p className="mt-2 mb-0 text-[12.5px] text-[var(--color-neutral-600)]">
+              <Link href="/privacy">Privacy</Link> ·{" "}
+              <Link href="/terms">Terms</Link> ·{" "}
+              <Link href="/support">Support</Link>
+            </p>
+          </div>
           <Button asChild>
             <Link href="/sign-up">Start My 30 Days</Link>
           </Button>

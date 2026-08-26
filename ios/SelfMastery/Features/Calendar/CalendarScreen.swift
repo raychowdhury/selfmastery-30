@@ -5,6 +5,7 @@ import SwiftUI
 struct CalendarScreen: View {
     @Environment(AppEnvironment.self) private var environment
     @State private var days: [CalendarDayDTO] = []
+    @State private var todayDayNumber: Int?
     @State private var selected: CalendarDayDTO?
     @State private var isLoading = true
     @State private var errorMessage: String?
@@ -48,7 +49,7 @@ struct CalendarScreen: View {
                 LazyVGrid(columns: columns, spacing: 8) {
                     ForEach(days) { day in
                         Button { selected = day } label: {
-                            CalendarCell(day: day)
+                            CalendarCell(day: day, isToday: day.dayNumber == todayDayNumber)
                         }
                         .buttonStyle(.plain)
                     }
@@ -66,6 +67,7 @@ struct CalendarScreen: View {
         do {
             let response = try await environment.api.progress()
             days = response.days ?? []
+            todayDayNumber = response.dayNumber
             isLoading = false
         } catch let error as APIError {
             if error.isCancellation { return }
@@ -81,6 +83,10 @@ struct CalendarScreen: View {
 
 struct CalendarCell: View {
     let day: CalendarDayDTO
+    /// Today keeps its ring even once it has progress. Without this the day you
+    /// are actually on disappears into the completed days, and the "Today" key
+    /// in the legend never appears.
+    var isToday = false
 
     var body: some View {
         VStack(spacing: 2) {
@@ -95,11 +101,13 @@ struct CalendarCell: View {
         .background(background, in: .rect(cornerRadius: Theme.Radius.small))
         .overlay {
             RoundedRectangle(cornerRadius: Theme.Radius.small)
-                .strokeBorder(border, lineWidth: day.dayState == .today ? 1.5 : 1)
+                .strokeBorder(border, lineWidth: isToday ? 2 : 1)
         }
         .foregroundStyle(foreground)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Day \(day.dayNumber), \(stateLabel)")
+        .accessibilityLabel(
+            isToday ? "Day \(day.dayNumber), today, \(stateLabel)" : "Day \(day.dayNumber), \(stateLabel)"
+        )
         .accessibilityAddTraits(.isButton)
     }
 
@@ -147,7 +155,9 @@ struct CalendarCell: View {
     }
 
     private var border: Color {
-        day.dayState == .today ? Theme.Palette.accent : Theme.Palette.separator.opacity(0.6)
+        isToday || day.dayState == .today
+            ? Theme.Palette.accent
+            : Theme.Palette.separator.opacity(0.6)
     }
 
     private var foreground: Color {

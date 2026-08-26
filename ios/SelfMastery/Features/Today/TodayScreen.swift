@@ -51,12 +51,17 @@ struct TodayScreen: View {
             VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
                 header(model: model)
 
-                if model.isOver {
+                // Reachable *on* the final day, not only after it. Day 30 is
+                // the day you finish; making someone wait until day 31 to see
+                // how it went would be an odd way to end a 30-day challenge.
+                if model.hasReachedFinalDay {
                     NavigationLink {
                         Day30Screen()
                     } label: {
                         BannerRow(
-                            text: "Your 30 days are complete. There's one last thing worth doing.",
+                            text: model.isOver
+                                ? "Your 30 days are complete. There's one last thing worth doing."
+                                : "You've reached Day 30. There's one last thing worth doing.",
                             actionLabel: "See how it went"
                         )
                     }
@@ -312,9 +317,18 @@ struct DailyProgressCard: View {
 }
 
 extension String {
+    /// Lowercases the first letter so a sentence can be joined onto "Because ".
+    ///
+    /// Leaves it alone when doing so would be wrong: an acronym ("NHS advice"),
+    /// or a single-letter first word — which is almost always the pronoun "I",
+    /// and "Because i want more energy" reads as a typo.
     var lowercasedFirst: String {
-        guard let first = first, first.isUppercase, dropFirst().first?.isUppercase != true
-        else { return self }
-        return first.lowercased() + dropFirst()
+        guard let first, first.isUppercase else { return self }
+
+        let rest = dropFirst()
+        if rest.first?.isUppercase == true { return self }
+        if rest.first == " " || rest.isEmpty { return self }
+
+        return first.lowercased() + rest
     }
 }

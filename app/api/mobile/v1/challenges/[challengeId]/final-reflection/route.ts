@@ -5,9 +5,9 @@ import { prisma } from "@/lib/db";
 import { completeChallenge } from "@/lib/services/challenge-service";
 
 const bodySchema = z.object({
-  reflection: z.string().trim().max(2000).optional(),
-  biggestChange: z.string().trim().max(500).optional(),
-  nextGoal: z.string().trim().max(300).optional(),
+  reflection: z.string().trim().max(2000).nullish(),
+  biggestChange: z.string().trim().max(500).nullish(),
+  nextGoal: z.string().trim().max(300).nullish(),
 });
 
 export const PUT = handler(

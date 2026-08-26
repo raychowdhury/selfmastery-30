@@ -14,6 +14,8 @@ causes a rejection.
 - [ ] **Demo credentials are entered and work.** Test them on a clean install
       immediately before submitting.
 - [ ] **Privacy policy URL is live** and reachable without signing in.
+      `/privacy`, `/terms` and `/support` ship with the web app; confirm the
+      draft notice is gone, meaning `lib/content/legal.ts` has been filled in.
 - [ ] **App Privacy answers match reality** and the privacy manifest.
 - [ ] **No placeholder or dead-end screens.** Every button does something.
 - [ ] **No crashes** on the review path.
@@ -21,8 +23,10 @@ causes a rejection.
 ### HIGH
 
 - [ ] **Password reset actually delivers email.** Without `RESEND_API_KEY` the
-      endpoint succeeds and sends nothing — functional-looking but broken.
-      Either configure it or remove the entry point before submitting.
+      endpoint now returns 503 with a clear message rather than pretending to
+      succeed, so nothing is silently broken — but the feature is unavailable
+      until a mail provider is configured. Check with
+      `curl https://your-domain/api/mobile/v1/health`.
 - [ ] **Support URL live.**
 - [ ] Screenshots show only real app output; no fabricated numbers.
 - [ ] Description makes no guaranteed, medical or financial claims.
@@ -31,8 +35,10 @@ causes a rejection.
 
 ### MEDIUM
 
-- [ ] Bundle identifier is your real one, not `com.yourcompany.selfmastery`.
-- [ ] App icon is final artwork rather than the generated placeholder.
+- [ ] Bundle identifier is your real one. Pass `SELFMASTERY_BUNDLE_ID` to
+      `ios/generate.sh`; it warns when the placeholder is still in use.
+- [ ] App icon reviewed. The generated one is shippable; replace it with
+      designer artwork at the same path and size if you want to.
 - [ ] Keywords contain no competitor names.
 - [ ] Age rating answers match the content.
 - [ ] Export compliance answered.

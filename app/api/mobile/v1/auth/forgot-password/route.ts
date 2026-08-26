@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { apiOk, handler, parseBody } from "@/lib/api/http";
-import { sendPasswordResetEmail } from "@/lib/api/mailer";
+import { ApiFailure, apiOk, handler, parseBody } from "@/lib/api/http";
+import { isMailConfigured, sendPasswordResetEmail } from "@/lib/api/mailer";
 import { issuePasswordResetToken } from "@/lib/api/tokens";
 import { prisma } from "@/lib/db";
 import { limitSignIn } from "@/lib/security/rate-limit";
@@ -16,6 +16,18 @@ const bodySchema = z.object({
  */
 export const POST = handler(async (request) => {
   const { email } = await parseBody(request, bodySchema);
+
+  // Fail loudly rather than pretending. Without a mail provider this endpoint
+  // would return success and send nothing, which reads as working and leaves
+  // the person locked out.
+  if (!isMailConfigured()) {
+    // 503, not 500: the service is correctly built but a dependency is not
+    // configured. The distinction matters when reading production logs.
+    throw new ApiFailure(
+      "service_unavailable",
+      "Password reset is temporarily unavailable. Please contact support."
+    );
+  }
 
   // Reuse the sign-in limiter: same abuse shape, same key.
   const limit = await limitSignIn(email);

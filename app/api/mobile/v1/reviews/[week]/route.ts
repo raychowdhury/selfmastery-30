@@ -7,11 +7,11 @@ import { getChallengeContext } from "@/lib/services/context";
 import { saveWeeklyReview } from "@/lib/services/review-service";
 
 const bodySchema = z.object({
-  wentWell: z.string().trim().max(1000).optional(),
-  struggledWith: z.string().trim().max(1000).optional(),
+  wentWell: z.string().trim().max(1000).nullish(),
+  struggledWith: z.string().trim().max(1000).nullish(),
   mainObstacle: z.array(z.string().max(40)).max(10).default([]),
   difficultyFeedback: z.enum(["TOO_EASY", "ABOUT_RIGHT", "TOO_DIFFICULT"]),
-  nextWeekChange: z.string().trim().max(1000).optional(),
+  nextWeekChange: z.string().trim().max(1000).nullish(),
 });
 
 /**
@@ -43,11 +43,11 @@ export const PUT = handler(
       {
         challengeId: challengeContext.challenge.id,
         weekNumber,
-        wentWell: body.wentWell,
-        struggledWith: body.struggledWith,
+        wentWell: body.wentWell ?? undefined,
+        struggledWith: body.struggledWith ?? undefined,
         mainObstacle: body.mainObstacle,
         difficultyFeedback: body.difficultyFeedback,
-        nextWeekChange: body.nextWeekChange,
+        nextWeekChange: body.nextWeekChange ?? undefined,
       },
       summary.completionRate,
       challengeContext.dayNumber

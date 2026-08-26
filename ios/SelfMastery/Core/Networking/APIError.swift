@@ -60,6 +60,10 @@ enum APIError: Error, Sendable, Equatable {
             return .validation(message: message, fields: envelope?.error.fields ?? [:])
         case 404: return .notFound(message)
         case 429: return .rateLimited(message)
+        // 503 carries a specific, user-facing reason from the server (for
+        // example password reset not being configured), so it is surfaced
+        // rather than replaced with a generic failure.
+        case 503: return .server(message)
         default: return .server(message)
         }
     }
