@@ -1,0 +1,84 @@
+name: SelfMastery
+options:
+  bundleIdPrefix: com.yourcompany
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+configs:
+  Debug: debug
+  Release: release
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    DEAD_CODE_STRIPPING: YES
+    CLANG_ENABLE_MODULES: YES
+    GCC_WARN_ABOUT_RETURN_TYPE: YES_ERROR
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+  configs:
+    Debug:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+      ONLY_ACTIVE_ARCH: YES
+    Release:
+      SWIFT_COMPILATION_MODE: wholemodule
+      VALIDATE_PRODUCT: YES
+
+targets:
+  SelfMastery:
+    type: application
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: SelfMastery
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourcompany.selfmastery
+        PRODUCT_NAME: SelfMastery
+        INFOPLIST_FILE: SelfMastery/Resources/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SUPPORTS_MACCATALYST: NO
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: NO
+        ENABLE_PREVIEWS: YES
+      configs:
+        # The API base URL is configuration, never hardcoded across the app.
+        # Release must never be able to point at localhost.
+        Debug:
+          API_BASE_URL: http:/$()/localhost:3000
+        Release:
+          API_BASE_URL: https:/$()/selfmastery-30.vercel.app
+
+  SelfMasteryTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: SelfMasteryTests
+    dependencies:
+      - target: SelfMastery
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourcompany.selfmastery.tests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  SelfMastery:
+    build:
+      targets:
+        SelfMastery: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - SelfMasteryTests
+    archive:
+      config: Release

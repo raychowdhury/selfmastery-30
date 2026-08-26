@@ -44,3 +44,10 @@ next-env.d.ts
 
 # local env
 .env
+
+# Xcode
+ios/*.xcodeproj
+ios/build/
+ios/DerivedData/
+*.xcuserstate
+xcuserdata/
