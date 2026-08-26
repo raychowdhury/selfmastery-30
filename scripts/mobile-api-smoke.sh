@@ -120,7 +120,8 @@ else
   chk "forgot-password 503 (mail not configured)" 503 "$CODE_KNOWN" ""
   chk "503 for unknown email too" 503 "$CODE_UNKNOWN" ""
   printf "  \033[33m!\033[0m mail is not configured — password reset is unavailable by design.\n"
-  printf "    Set RESEND_API_KEY and MAIL_FROM before release. See DEPLOY.md.\n"
+  printf "    Set MAIL_FROM plus either RESEND_API_KEY or SMTP_HOST/SMTP_USER/SMTP_PASSWORD\n"
+  printf "    before release. See DEPLOY.md section 6.\n"
 fi
 
 echo "== account deletion =="

@@ -16,7 +16,7 @@ Last updated: 26 August 2026 · App version 1.0.0 (build 1)
 | Privacy Policy | **READY (pending legal review)** — live page, placeholders visible |
 | Terms of Use | **READY (pending legal review)** — live page |
 | Support URL | **READY** — live page |
-| Password Reset Email | **READY (needs a key)** — fails honestly with 503 until configured |
+| Password Reset Email | **READY** — free Gmail SMTP path, no domain needed |
 | Demo Account | **READY** — one command creates it |
 | App Review Notes | **READY** |
 | Production Backend | **BLOCKED** — needs your Vercel/Neon accounts |
@@ -49,13 +49,18 @@ email.
 This was the HIGH risk: without a mail provider the endpoint returned success
 and sent nothing, so a locked-out user would wait forever for an email.
 
-It now returns **503 with a clear message** when `RESEND_API_KEY` / `MAIL_FROM`
-are unset, and the app shows that message. A new
+It now returns **503 with a clear message** when no mail transport is
+configured, and the app shows that message. A new
 `GET /api/mobile/v1/health` endpoint reports which dependencies are configured,
 and the smoke test asserts the correct behaviour for both cases.
 
-**You still need to:** add a mail provider key to actually deliver resets.
-Resend's free tier is 3,000/month with no card. Until then the feature is
+Two transports are supported so a domain is not a prerequisite: **Gmail over
+SMTP** with an App Password (free, no domain — mail goes out through Google
+from your own address, so SPF and DKIM align), or **Resend** once you own a
+domain.
+
+**You still need to:** create the sending account and set the variables. The
+Gmail route costs nothing and needs no domain. Until then the feature is
 honestly unavailable rather than fake.
 
 ### Screenshots — captured
@@ -175,7 +180,8 @@ bundle identifier, then Archive and upload from Xcode.
 ## Recommended order
 
 1. Deploy the backend (`DEPLOY.md`) — unblocks the most.
-2. Add `RESEND_API_KEY` and `MAIL_FROM`; send yourself a real reset.
+2. Configure mail (DEPLOY.md step 6 — Gmail App Password is free and needs no
+   domain); send yourself a real reset and check the spam folder.
 3. Fill `lib/content/legal.ts`; get the legal drafts reviewed.
 4. Apple Developer account; register a bundle ID; run `ios/generate.sh` with it.
 5. `node scripts/create-demo-account.mjs` against production.

@@ -1,5 +1,5 @@
 import { apiOk, handler } from "@/lib/api/http";
-import { isMailConfigured } from "@/lib/api/mailer";
+import { isMailConfigured, mailTransport } from "@/lib/api/mailer";
 import { prisma } from "@/lib/db";
 
 /**
@@ -40,8 +40,8 @@ export const GET = handler(async () => {
     // Named so the checklist can quote them directly.
     notes: {
       email: email
-        ? "Password reset can be delivered."
-        : "RESEND_API_KEY / MAIL_FROM are not set. Password reset returns an error rather than failing silently.",
+        ? `Password reset can be delivered (via ${mailTransport()}).`
+        : "No mail transport is configured. Set MAIL_FROM plus either RESEND_API_KEY or SMTP_HOST/SMTP_USER/SMTP_PASSWORD. Password reset returns an error rather than failing silently.",
       rateLimiting: rateLimiting
         ? "Sign-up and sign-in are throttled."
         : "UPSTASH_REDIS_REST_URL / _TOKEN are not set. Sign-up is unthrottled.",
