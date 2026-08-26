@@ -1,0 +1,145 @@
+name: iOS release
+
+# Tag a release to ship a build:
+#
+#   git tag v1.0.0 && git push origin v1.0.0
+#
+# Or run it by hand from the Actions tab. Neither path submits for review —
+# the build lands in TestFlight and the final press stays yours.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      upload_metadata:
+        description: "Also upload metadata and screenshots"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-release
+  cancel-in-progress: false
+
+jobs:
+  testflight:
+    name: Build and upload to TestFlight
+    runs-on: macos-15
+    timeout-minutes: 45
+
+    env:
+      SELFMASTERY_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
+      SELFMASTERY_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+      SELFMASTERY_API_URL: ${{ secrets.PRODUCTION_API_URL }}
+      ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      # Keeps fastlane's output readable and its analytics off.
+      FASTLANE_SKIP_UPDATE_CHECK: "1"
+      FASTLANE_HIDE_CHANGELOG: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required secrets
+        # Fails in seconds with a specific name rather than deep inside a build.
+        run: |
+          missing=""
+          for name in IOS_BUNDLE_ID IOS_TEAM_ID PRODUCTION_API_URL \
+                      APP_STORE_CONNECT_KEY_ID APP_STORE_CONNECT_ISSUER_ID \
+                      APP_STORE_CONNECT_KEY_P8 IOS_DIST_CERT_P12 IOS_DIST_CERT_PASSWORD; do
+            eval "value=\${$name}"
+            if [ -z "$value" ]; then
+              missing="$missing $name"
+            fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing"
+            echo "See docs/ios/RELEASE_PROCESS.md for how to create each one."
+            exit 1
+          fi
+        env:
+          IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+          PRODUCTION_API_URL: ${{ secrets.PRODUCTION_API_URL }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_P8: ${{ secrets.APP_STORE_CONNECT_KEY_P8 }}
+          IOS_DIST_CERT_P12: ${{ secrets.IOS_DIST_CERT_P12 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: ios
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      # Signing material is written to a throwaway keychain and a runner-local
+      # path, never into the workspace, and both are destroyed in the final
+      # step even if the build fails.
+      - name: Install signing certificate
+        env:
+          CERT_P12: ${{ secrets.IOS_DIST_CERT_P12 }}
+          CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PASSWORD=$(uuidgen)
+          echo "KEYCHAIN_PATH=$KEYCHAIN" >> "$GITHUB_ENV"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 3600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+
+          echo "$CERT_P12" | base64 --decode > "$RUNNER_TEMP/dist.p12"
+          security import "$RUNNER_TEMP/dist.p12" \
+            -k "$KEYCHAIN" -P "$CERT_PASSWORD" \
+            -T /usr/bin/codesign -T /usr/bin/security
+          rm -f "$RUNNER_TEMP/dist.p12"
+
+          # Lets codesign use the key without an interactive prompt.
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" >/dev/null
+
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          security find-identity -v -p codesigning "$KEYCHAIN"
+
+      - name: Write App Store Connect API key
+        env:
+          KEY_P8: ${{ secrets.APP_STORE_CONNECT_KEY_P8 }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/private_keys"
+          echo "$KEY_P8" | base64 --decode > "$RUNNER_TEMP/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+          chmod 600 "$RUNNER_TEMP/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+          echo "ASC_KEY_PATH=$RUNNER_TEMP/private_keys/AuthKey_${ASC_KEY_ID}.p8" >> "$GITHUB_ENV"
+
+      - name: Upload to TestFlight
+        working-directory: ios
+        run: bundle exec fastlane beta
+
+      - name: Upload metadata and screenshots
+        if: github.event_name == 'workflow_dispatch' && inputs.upload_metadata
+        working-directory: ios
+        run: bundle exec fastlane metadata
+
+      - name: Keep the build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            ios/fastlane/report.xml
+            /Users/runner/Library/Logs/gym/*.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+      # Runs even on failure. A leftover keychain or private key on a shared
+      # runner image is exactly the kind of thing that should not outlive a job.
+      - name: Destroy signing material
+        if: always()
+        run: |
+          security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
+          rm -rf "$RUNNER_TEMP/private_keys"

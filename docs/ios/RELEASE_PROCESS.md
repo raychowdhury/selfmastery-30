@@ -87,6 +87,73 @@ Three files still contain `[YOUR-DOMAIN]` / `[YOUR LEGAL ENTITY]`:
 `support_url.txt`, `marketing_url.txt`, `privacy_url.txt` and
 `metadata/copyright.txt`. Fill them before running the `metadata` lane.
 
+## Continuous integration
+
+Two workflows in `.github/workflows/`.
+
+### `ci.yml` — every push and pull request
+
+| Job | Runner | What it does |
+| --- | --- | --- |
+| `backend` | ubuntu-latest | Postgres 16 service, `prisma migrate deploy`, eslint, `tsc`, vitest, `next build`, then boots the server and runs the full mobile API smoke test against it |
+| `ios` | macos-15 | `xcodegen`, tests on a simulator discovered at runtime, a Release build, then the same release audit as above — HTTPS only, zero `localhost` strings, manifest bundled |
+
+No secrets. It builds against a placeholder API URL, because what it is checking
+is that the code compiles and behaves, not where it points.
+
+### `ios-release.yml` — tag push
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Imports the signing certificate into a throwaway keychain, writes the API key to
+a runner-local path, runs `fastlane beta`, and destroys both in a step that runs
+even when the build fails. The build lands in TestFlight.
+
+**It does not submit for review**, and there is no input that makes it. Same rule
+as the lanes: that press stays yours.
+
+`workflow_dispatch` runs it by hand from the Actions tab, with an optional
+`upload_metadata` toggle for the `metadata` lane.
+
+### Required repository secrets
+
+Settings → Secrets and variables → Actions. The workflow checks all eight in its
+first step and names the missing ones, rather than failing inside a build.
+
+| Secret | What it is |
+| --- | --- |
+| `IOS_BUNDLE_ID` | e.g. `com.yourname.selfmastery` |
+| `IOS_TEAM_ID` | `F5MY9BC25S` |
+| `PRODUCTION_API_URL` | `https://your-production-domain` — the generator rejects non-HTTPS |
+| `APP_STORE_CONNECT_KEY_ID` | the 10-character key id |
+| `APP_STORE_CONNECT_ISSUER_ID` | the issuer UUID |
+| `APP_STORE_CONNECT_KEY_P8` | the `.p8`, base64 |
+| `IOS_DIST_CERT_P12` | Apple Distribution certificate + private key, base64 |
+| `IOS_DIST_CERT_PASSWORD` | the password you set when exporting the `.p12` |
+
+Base64 the two files so they survive as single-line secrets:
+
+```bash
+base64 -i AuthKey_XXXXXXXXXX.p8 | pbcopy
+base64 -i distribution.p12 | pbcopy
+```
+
+The `.p12` comes from Keychain Access → My Certificates → your **Apple
+Distribution** certificate → right-click → Export. You do not have one yet: this
+machine has a Development certificate only. Xcode creates the distribution
+certificate the first time you archive for App Store distribution.
+
+### On this being a public repository
+
+Actions secrets are not readable from the workflow log, and are never given to
+workflows triggered by a pull request from a fork. `ios-release.yml` only runs on
+a tag pushed to this repository or a manual dispatch, so a fork cannot reach the
+signing key. Keep it that way: do not add a `pull_request` or
+`pull_request_target` trigger to it.
+
 ## Archiving
 
 1. Xcode → **Product → Archive** (scheme is already set to Release for archive).

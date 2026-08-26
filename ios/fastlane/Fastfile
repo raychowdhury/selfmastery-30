@@ -38,7 +38,8 @@ platform :ios do
     run_tests(
       project: "SelfMastery.xcodeproj",
       scheme: "SelfMastery",
-      devices: ["iPhone 17"]
+      # Runner images change their simulator lineup, so this is overridable.
+      devices: [ENV["SELFMASTERY_TEST_DEVICE"] || "iPhone 17"]
     )
   end
 
@@ -50,7 +51,11 @@ platform :ios do
     ensure_release_config
 
     increment_build_number(
-      build_number: latest_testflight_build_number(app_identifier: APP_ID) + 1,
+      build_number: latest_testflight_build_number(
+        app_identifier: APP_ID,
+        # There is no previous build before the first upload.
+        initial_build_number: 0
+      ) + 1,
       xcodeproj: "SelfMastery.xcodeproj"
     )
 
@@ -60,7 +65,15 @@ platform :ios do
       configuration: "Release",
       export_method: "app-store",
       output_directory: "build",
-      clean: true
+      clean: true,
+      # Automatic signing needs to fetch a provisioning profile, which on a
+      # headless runner only works with an API key and this flag. Without it the
+      # build fails with an opaque "no profiles found".
+      xcargs: "-allowProvisioningUpdates",
+      export_options: {
+        signingStyle: "automatic",
+        teamID: ENV["SELFMASTERY_TEAM_ID"]
+      }
     )
 
     upload_to_testflight(

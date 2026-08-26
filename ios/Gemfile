@@ -1,3 +1,7 @@
 source "https://rubygems.org"
 
-gem "fastlane"
+# Floor rather than an exact pin: the lockfile is not committed because the only
+# Ruby on this machine is the system 2.6, and a lockfile resolved against it
+# would be wrong for the 3.3 the runner uses. CI resolves and caches its own.
+# 2.220 is the floor for reliable App Store Connect API key auth on Xcode 16.
+gem "fastlane", ">= 2.220"

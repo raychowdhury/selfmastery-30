@@ -1,0 +1,147 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Least privilege: nothing here writes to the repository.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+
+    # A real Postgres, so migrations and the API smoke test run against the
+    # same engine production uses rather than a stand-in.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: selfmastery
+          POSTGRES_PASSWORD: selfmastery
+          POSTGRES_DB: selfmastery
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U selfmastery"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://selfmastery:selfmastery@localhost:5432/selfmastery?schema=public
+      DIRECT_URL: postgresql://selfmastery:selfmastery@localhost:5432/selfmastery?schema=public
+      AUTH_SECRET: ci-only-secret-not-used-anywhere-real
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+
+      - name: Lint
+        run: npx eslint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Unit tests
+        run: npx vitest run
+
+      - name: Production build
+        run: npm run build
+
+      # The strongest signal in this workflow: it exercises auth, the full day
+      # lifecycle, cross-user isolation and account deletion against a real
+      # server and a real database.
+      - name: Mobile API smoke test
+        run: |
+          npm run start &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3000/api/mobile/v1/health >/dev/null && break
+            sleep 2
+          done
+          ./scripts/mobile-api-smoke.sh
+
+  ios:
+    name: iOS
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        working-directory: ios
+        # Simulator builds do not need a team or a real backend; the generator
+        # still refuses a non-HTTPS release URL.
+        run: ./generate.sh
+
+      # Runner images change their simulator lineup regularly, so the device is
+      # discovered rather than hardcoded.
+      - name: Pick a simulator
+        id: sim
+        run: |
+          NAME=$(xcrun simctl list devices available \
+            | grep -oE 'iPhone [0-9]+( Pro)?( Max)?' | head -1)
+          echo "Using ${NAME:-iPhone 16}"
+          echo "name=${NAME:-iPhone 16}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and test
+        working-directory: ios
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project SelfMastery.xcodeproj \
+            -scheme SelfMastery \
+            -destination "platform=iOS Simulator,name=${{ steps.sim.outputs.name }}" \
+            -derivedDataPath DerivedData \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Release build
+        working-directory: ios
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project SelfMastery.xcodeproj \
+            -scheme SelfMastery \
+            -destination 'generic/platform=iOS' \
+            -configuration Release \
+            -derivedDataPath DerivedData \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+
+      # Catches a Release build wired to the wrong backend before it can reach
+      # a person.
+      - name: Audit the release bundle
+        working-directory: ios
+        run: |
+          APP=DerivedData/Build/Products/Release-iphoneos/SelfMastery.app
+          URL=$(plutil -extract APIBaseURL raw "$APP/Info.plist")
+          echo "APIBaseURL: $URL"
+          case "$URL" in https://*) ;; *) echo "::error::Release build is not HTTPS"; exit 1 ;; esac
+          if strings "$APP/SelfMastery" | grep -q localhost; then
+            echo "::error::Release binary contains a localhost reference"; exit 1
+          fi
+          test -f "$APP/PrivacyInfo.xcprivacy" || { echo "::error::Privacy manifest missing"; exit 1; }
+          echo "Release bundle audit passed."
