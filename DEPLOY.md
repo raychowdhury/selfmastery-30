@@ -9,7 +9,7 @@ credit card at any step. Both are real free tiers, not trials.
 | Database | [Neon](https://neon.com/) | 0.5 GB storage, 100 compute-hours/month, scales to zero | No |
 | Rate limiting | [Upstash Redis](https://upstash.com/redis) | 500K commands/month, 256 MB | No |
 | Domain | `*.vercel.app` | Included | No |
-| Nicer domain (optional) | [is-a.dev](https://github.com/is-a-dev/register) | Free subdomain via pull request | No |
+| Email | Gmail SMTP (App Password) | ~500 recipients/day | No |
 
 **One caveat worth knowing up front:** Vercel's Hobby plan is for
 non-commercial, personal projects. Free for a public app people sign up to and
@@ -67,6 +67,10 @@ gh repo create selfmastery-30 --public --source=. --remote=origin --push
    | `NEXT_PUBLIC_SITE_URL` | `https://<your-project>.vercel.app` |
    | `UPSTASH_REDIS_REST_URL` | From Upstash |
    | `UPSTASH_REDIS_REST_TOKEN` | From Upstash |
+
+   Mail needs five more. They can wait — the app deploys and runs without
+   them, and password reset reports itself unavailable until they are set.
+   See step 6.
 
 4. Deploy.
 
