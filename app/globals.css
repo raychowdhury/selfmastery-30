@@ -1,26 +1,674 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ===========================================================================
+   SelfMastery 30 — design system
+   Ported from the Nocturne design system used in the Claude Design prototype
+   (SelfMastery 30 Prototype.dc.html). The prototype is dark-only; the light
+   theme below is derived from the same OKLCH ramps so both themes share one
+   set of component rules.
+   =========================================================================== */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root,
+.dark {
+  color-scheme: dark;
+
+  /* Page ground sits a shade below the app surface, as in the prototype. */
+  --color-page: #101120;
+  --color-bg: #161826;
+  --color-surface: #232532;
+  --color-surface-2: #2b2e3d;
+  --color-text: #e9e9ed;
+  --color-accent: #9184d9;
+  --color-accent-2: #a7a1db;
+  --color-on-accent: #161826;
+  /* Foreground for text sitting on a *tinted* accent wash (selected pills,
+     the active nav item). Distinct from --color-on-accent, which is for text
+     on a solid accent fill. */
+  --color-accent-on-tint: #e7e5fe;
+  /* Hover moves *away* from the ground in both themes: lighter on dark,
+     darker on light. */
+  --color-accent-hover: #b5abfc;
+  --color-divider: color-mix(in srgb, #e9e9ed 16%, transparent);
+  --color-hairline: rgba(255, 255, 255, 0.09);
+
+  /* Tonal ramps — one shared lightness scale, so the same step of any role
+     matches the others in visual value. */
+  --color-neutral-100: #f3f5fe;
+  --color-neutral-200: #e4e7f5;
+  --color-neutral-300: #cfd3e5;
+  --color-neutral-400: #b2b6ca;
+  --color-neutral-500: #9397ab;
+  --color-neutral-600: #75798c;
+  --color-neutral-700: #595d6c;
+  --color-neutral-800: #3f424d;
+  --color-neutral-900: #292b31;
+
+  --color-accent-100: #f5f4ff;
+  --color-accent-200: #e7e5fe;
+  --color-accent-300: #d2cefd;
+  --color-accent-400: #b5abfc;
+  --color-accent-500: #968ae0;
+  --color-accent-600: #796cbf;
+  --color-accent-700: #5d5294;
+  --color-accent-800: #423a6a;
+  --color-accent-900: #2b2741;
+
+  --color-accent-2-100: #f5f4ff;
+  --color-accent-2-200: #e7e5fe;
+  --color-accent-2-300: #d2cefd;
+  --color-accent-2-400: #b5afe8;
+  --color-accent-2-500: #9690c9;
+  --color-accent-2-600: #7972a9;
+  --color-accent-2-700: #5c5783;
+  --color-accent-2-800: #423e5d;
+  --color-accent-2-900: #2b293a;
+
+  /* Deck-scale fills — used only by the Day 30 celebration ground. */
+  --color-section: #262a60;
+  --color-section-glow: #353b80;
+  --color-section-ghost: #4c5397;
+
+  --font-heading: var(--font-inter), "Inter", system-ui, sans-serif;
+  --font-heading-weight: 500;
+  --font-body: var(--font-inter), "Inter", system-ui, sans-serif;
+
+  --space-1: 2.8px;
+  --space-2: 5.6px;
+  --space-3: 8.4px;
+  --space-4: 11.2px;
+  --space-6: 16.8px;
+  --space-8: 22.4px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 0 0 1px #3f424d;
+  --shadow-md: 0 0 0 1px #595d6c, 0 6px 18px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 0 0 1px #9397ab, 0 16px 40px rgba(0, 0, 0, 0.65);
+}
+
+/* Light theme — the ramps are unchanged (they are hue-matched); only the
+   ground, the ink and the accent's working value swap, so every component
+   rule below stays single-source. */
+:root:where(.light) {
+  color-scheme: light;
+
+  --color-page: #f6f6fa;
+  --color-bg: #fbfbfd;
+  --color-surface: #ffffff;
+  --color-surface-2: #f1f1f7;
+  --color-text: #1a1b2a;
+  /* accent-700: the darkest step that still reads as the brand hue, and the
+     only one that clears AA as text on a light ground. */
+  --color-accent: #5d5294;
+  --color-accent-2: #6b6597;
+  --color-on-accent: #ffffff;
+  --color-accent-on-tint: #423a6a;
+  --color-accent-hover: #423a6a;
+  --color-divider: color-mix(in srgb, #1a1b2a 14%, transparent);
+  --color-hairline: rgba(26, 27, 42, 0.1);
+
+  --color-neutral-100: #292b31;
+  --color-neutral-200: #3f424d;
+  --color-neutral-300: #595d6c;
+  --color-neutral-400: #696d7f;
+  --color-neutral-500: #75798c;
+  --color-neutral-600: #9397ab;
+  --color-neutral-700: #b2b6ca;
+  --color-neutral-800: #dcdfec;
+  --color-neutral-900: #eceef7;
+
+  --shadow-sm: 0 0 0 1px rgba(26, 27, 42, 0.08);
+  --shadow-md: 0 0 0 1px rgba(26, 27, 42, 0.07), 0 6px 18px rgba(26, 27, 42, 0.08);
+  --shadow-lg: 0 0 0 1px rgba(26, 27, 42, 0.08), 0 16px 40px rgba(26, 27, 42, 0.14);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-page: var(--color-page);
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-2: var(--color-surface-2);
+  --color-text: var(--color-text);
+  --color-accent: var(--color-accent);
+  --color-divider: var(--color-divider);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+
+  --font-sans: var(--font-body);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ---------------------------------------------------------------------------
+   Cascade layers
+   Element resets go in `base` and the component classes in `components`, so a
+   Tailwind utility always wins over them. Left unlayered, a bare `h2 {}` rule
+   would beat `text-[10px]` — unlayered styles outrank layered ones — and every
+   size utility in the app would silently do nothing.
+   --------------------------------------------------------------------------- */
+
+@layer base {
+  /* ---------------------------------------------------------------------------
+     Base
+     --------------------------------------------------------------------------- */
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-page);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    margin: 0 0 var(--space-2);
+  }
+  h1 { font-size: 42px; }
+  h2 { font-size: 32px; }
+  h3 { font-size: 25px; }
+  h4 { font-size: 20px; }
+  h5 { font-size: 16px; }
+  h6 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  p { margin: 0 0 var(--space-3); }
+  a { color: var(--color-accent); text-underline-offset: 3px; }
+  a:hover { color: var(--color-accent-hover); }
+  img { display: block; max-width: 100%; }
+
+  :focus { outline: none; }
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 30%, transparent);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* ---------------------------------------------------------------------------
+     Typography helpers
+     --------------------------------------------------------------------------- */
+
+  .text-muted {
+    color: color-mix(in srgb, var(--color-text) 55%, transparent);
+  }
+
+  .heading {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+  }
+
+  .eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .label-caps {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-neutral-500);
+  }
+
+  .wordmark {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    letter-spacing: 0.06em;
+  }
+
+  /* ---------------------------------------------------------------------------
+     Rules — a Nocturne signature: freestanding rules fade to transparent at
+     both ends over 48px. Box outlines and in-control separators stay solid.
+     --------------------------------------------------------------------------- */
+
+  .hr {
+    height: 1px;
+    border: 0;
+    margin: var(--space-4) 0;
+    background: linear-gradient(
+      to right,
+      transparent,
+      var(--color-divider) 48px,
+      var(--color-divider) calc(100% - 48px),
+      transparent
+    );
+  }
+
+  /* ---------------------------------------------------------------------------
+     Buttons — the primary is an outline, not a fill. That restraint is what
+     keeps the interface calm.
+     --------------------------------------------------------------------------- */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    font-size: 14px;
+    line-height: 1.2;
+    color: var(--color-text);
+    background: transparent;
+    border: 1px solid transparent;
+    padding: var(--space-2) calc(var(--space-3) * 1.2);
+    border-radius: var(--radius-md);
+    transition: background-color 140ms ease, color 140ms ease,
+      border-color 140ms ease, transform 140ms ease;
+  }
+  .btn svg { display: block; }
+  .btn:active { transform: scale(0.985); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  .btn-primary { color: var(--color-accent); border-color: var(--color-accent); }
+  .btn-primary:hover { background: color-mix(in srgb, var(--color-accent) 12%, transparent); }
+  .btn-primary:active { background: color-mix(in srgb, var(--color-accent) 22%, transparent); }
+
+  .btn-secondary { border-color: var(--color-divider); }
+  .btn-secondary:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+  .btn-secondary:active { background: color-mix(in srgb, var(--color-text) 14%, transparent); }
+
+  .btn-ghost { color: var(--color-accent); padding-inline: var(--space-1); }
+  .btn-ghost:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+  .btn-ghost:active { background: color-mix(in srgb, var(--color-accent) 18%, transparent); }
+
+  .btn-quiet { color: var(--color-neutral-500); padding-inline: var(--space-1); }
+  .btn-quiet:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); color: var(--color-text); }
+
+  .btn-icon { width: 36px; height: 36px; padding: 0; }
+  .btn-block { width: 100%; }
+  .btn-lg { padding: 12px 26px; font-size: 15px; }
+  .btn-md { padding: 10px 22px; }
+
+  /* ---------------------------------------------------------------------------
+     Forms
+     --------------------------------------------------------------------------- */
+
+  .field > label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 5px;
+    color: color-mix(in srgb, var(--color-text) 70%, transparent);
+  }
+
+  .input {
+    width: 100%;
+    min-height: 36px;
+    padding: 6px 10px;
+    font: inherit;
+    font-size: 14px;
+    color: var(--color-text);
+    caret-color: var(--color-accent);
+    background: var(--color-surface);
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-md);
+    transition: border-color 140ms ease;
+  }
+  .input::placeholder { color: var(--color-neutral-500); }
+  .input:hover { border-color: color-mix(in srgb, var(--color-text) 45%, transparent); }
+  .input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
+  .input[aria-invalid="true"] { border-color: #d38b80; }
+  textarea.input { min-height: 90px; resize: vertical; }
+
+  .seg {
+    display: inline-flex;
+    overflow: hidden;
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-md);
+  }
+  .seg-opt {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    min-height: 36px;
+  }
+  .seg-opt input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+  .seg-opt + .seg-opt { border-left: 1px solid var(--color-divider); }
+  .seg-opt:has(input:checked) {
+    color: var(--color-accent);
+    box-shadow: inset 0 0 0 1px var(--color-accent);
+  }
+  .seg-opt:not(:has(input:checked)):hover {
+    background: color-mix(in srgb, var(--color-text) 7%, transparent);
+  }
+  .seg-opt:has(input:focus-visible) { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+
+  /* Pill choices — moods, obstacle chips, difficulty. Selection is shown by
+     border, tint and text colour together, never colour alone. */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 22px;
+    min-height: 44px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 14px;
+    border: 1px solid var(--color-divider);
+    background: transparent;
+    color: var(--color-neutral-300);
+    transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+  }
+  .pill:hover { background: color-mix(in srgb, var(--color-text) 6%, transparent); }
+  .pill:has(input:checked),
+  .pill[data-selected="true"] {
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    color: var(--color-accent-on-tint);
+  }
+  .pill input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+  .pill:has(input:focus-visible) { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+  /* Option tiles — the onboarding category grid. */
+  .tile {
+    display: block;
+    width: 100%;
+    padding: 18px 14px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 14px;
+    border: 1px solid var(--color-divider);
+    background: var(--color-surface);
+    color: var(--color-text);
+    transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+  }
+  .tile:hover { border-color: color-mix(in srgb, var(--color-accent) 45%, transparent); }
+  .tile:has(input:checked),
+  .tile[data-selected="true"] {
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    color: var(--color-accent-on-tint);
+  }
+  .tile input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+  .tile:has(input:focus-visible) { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  .tile-sub {
+    display: block;
+    margin-top: 3px;
+    font-weight: 400;
+    font-size: 12.5px;
+    color: var(--color-neutral-500);
+  }
+
+  /* Toggle switch */
+  .switch {
+    width: 36px;
+    height: 21px;
+    border-radius: 999px;
+    background: var(--color-neutral-800);
+    position: relative;
+    display: inline-block;
+    flex: none;
+    cursor: pointer;
+    transition: background-color 160ms ease;
+  }
+  .switch::after {
+    content: "";
+    position: absolute;
+    top: 2.5px;
+    left: 2.5px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-bg);
+    transition: transform 160ms ease;
+  }
+  .switch[data-on="true"] { background: var(--color-accent); }
+  .switch[data-on="true"]::after { transform: translateX(15px); }
+
+  /* ---------------------------------------------------------------------------
+     Cards, tags, dialogs
+     --------------------------------------------------------------------------- */
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+  .card-kicker {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+  .card-title {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    font-size: 17px;
+    line-height: 1.2;
+  }
+  .card-body { margin: 0; font-size: 13px; opacity: 0.8; flex: 1; }
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: color-mix(in srgb, var(--color-text) 50%, transparent);
+  }
+  .elev-sm { box-shadow: var(--shadow-sm); }
+  .elev-md { box-shadow: var(--shadow-md); }
+  .elev-lg { box-shadow: var(--shadow-lg); }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    padding: 3px 10px;
+    border-radius: calc(var(--radius-md) * 0.75);
+    white-space: nowrap;
+  }
+  .tag-accent { background: var(--color-accent-800); color: var(--color-accent-100); }
+  .tag-accent-2 { background: var(--color-accent-2-800); color: var(--color-accent-2-100); }
+  .tag-neutral { background: var(--color-neutral-800); color: var(--color-neutral-100); }
+  .tag-outline { border: 1px solid var(--color-accent); color: var(--color-accent); }
+
+  .dialog {
+    width: min(460px, 100%);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-lg);
+  }
+  .dialog-title {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    font-size: 20px;
+    line-height: 1.2;
+  }
+  .dialog-body { font-size: 14px; opacity: 0.85; margin: 0; }
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+
+  /* ---------------------------------------------------------------------------
+     App-specific pieces
+     --------------------------------------------------------------------------- */
+
+  /* Thin track used for the 30-day rail and every completion bar. */
+  .track {
+    height: 3px;
+    border-radius: 2px;
+    background: var(--color-neutral-900);
+    overflow: hidden;
+  }
+  .track-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--color-accent);
+    transition: width 250ms ease;
+  }
+
+  /* Sidebar / bottom-nav items */
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    font-size: 14px;
+    background: transparent;
+    color: var(--color-neutral-400);
+    text-decoration: none;
+    transition: background-color 140ms ease, color 140ms ease;
+  }
+  .nav-item:hover { color: var(--color-text); background: color-mix(in srgb, var(--color-text) 6%, transparent); }
+  .nav-item[aria-current="page"] {
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    color: var(--color-accent-on-tint);
+    box-shadow: inset 2px 0 0 var(--color-accent);
+  }
+
+  .tabbar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 0;
+    min-height: 44px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 10.5px;
+    color: var(--color-neutral-500);
+    text-decoration: none;
+  }
+  .tabbar-item[aria-current="page"] { color: var(--color-accent); }
+
+  /* Day-30 celebration ground.
+     This surface is always dark, in either theme, so it re-declares the tokens
+     its contents use — otherwise the light theme's dark ink lands on it and
+     the whole panel goes unreadable. */
+  .celebration {
+    background: radial-gradient(
+      ellipse 90% 60% at 50% -10%,
+      var(--color-section-glow),
+      var(--color-section) 55%,
+      #1b1e46 100%
+    );
+
+    --color-text: #e9e9ed;
+    --color-bg: #161826;
+    --color-surface: #232532;
+    --color-accent: #9184d9;
+    --color-accent-hover: #b5abfc;
+    --color-accent-on-tint: #e7e5fe;
+    --color-on-accent: #161826;
+    --color-divider: color-mix(in srgb, #e9e9ed 20%, transparent);
+    --color-neutral-400: #b2b6ca;
+    --color-neutral-500: #9397ab;
+
+    color: var(--color-text);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Motion — restrained, and always optional
+   --------------------------------------------------------------------------- */
+
+@keyframes sm-pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  70% { transform: scale(1.12); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes sm-fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes sm-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-pop { animation: sm-pop 0.2s ease; }
+.animate-fade-up { animation: sm-fade-up 240ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-fade-in { animation: sm-fade-in 200ms ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer utilities {
+  .tap-target { min-height: 44px; min-width: 44px; }
+  .text-pretty { text-wrap: pretty; }
+  .text-balance { text-wrap: balance; }
 }

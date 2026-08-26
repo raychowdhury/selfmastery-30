@@ -1,0 +1,362 @@
+// SelfMastery — 30 Days. One Meaningful Change.
+//
+// Design rule: the domain model is goal-agnostic. There are NO columns named after
+// life areas (career/exercise/mind/admin). A challenge owns arbitrary Pillars, and
+// every DailyAction points at a Pillar row. Supporting a brand-new kind of goal is a
+// content change (a new template), never a migration.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum ChallengeStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+/// Progression arc across the 30 days. Days 1-7 CONSISTENCY, 8-14 BUILD,
+/// 15-21 DEPTH, 22-30 FINISH.
+enum Phase {
+  CONSISTENCY
+  BUILD
+  DEPTH
+  FINISH
+}
+
+enum Difficulty {
+  GENTLE
+  BALANCED
+  CHALLENGING
+}
+
+enum DayFeeling {
+  EASY
+  GOOD
+  DIFFICULT
+}
+
+enum DifficultyFeedback {
+  TOO_EASY
+  ABOUT_RIGHT
+  TOO_DIFFICULT
+}
+
+enum PreferredTime {
+  MORNING
+  AFTERNOON
+  EVENING
+  FLEXIBLE
+}
+
+/// Source of a plan change. Recorded so adjustments are always explainable.
+enum AdjustmentSource {
+  WEEKLY_REVIEW
+  USER_EDIT
+  AI_COACH
+}
+
+// ---------------------------------------------------------------------------
+// Auth
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String    @id @default(cuid())
+  name         String?
+  email        String    @unique
+  emailVerified DateTime?
+  passwordHash String?
+  image        String?
+  /// IANA zone. "Today" is a calendar day, so it has to be the user's day.
+  timezone     String    @default("UTC")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  accounts   Account[]
+  sessions   Session[]
+  challenges Challenge[]
+}
+
+/// Present so an OAuth provider (Google) can be added later without a migration.
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------------------------------------------------------------------------
+// Domain
+// ---------------------------------------------------------------------------
+
+model Challenge {
+  id     String @id @default(cuid())
+  userId String
+
+  /// Short label shown in navigation, e.g. "Get physically active".
+  title String
+  /// The user's own words for what they want to accomplish.
+  goal  String
+
+  /// Q3 of onboarding. Resurfaced when completion drops.
+  whyItMatters      String?
+  /// "What would make Day 30 feel successful?"
+  successDefinition String?
+
+  /// Slug of the category strategy used to generate the plan (e.g. "fitness").
+  /// A string, deliberately not an enum, so new strategies need no migration.
+  category String
+
+  availableMinutes Int
+  difficulty       Difficulty    @default(BALANCED)
+  preferredTime    PreferredTime @default(FLEXIBLE)
+  /// Selected obstacles from onboarding, stored as slugs.
+  obstacles        String[]      @default([])
+
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  lengthDays Int     @default(30)
+
+  status ChallengeStatus @default(DRAFT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pillars         Pillar[]
+  days            ChallengeDay[]
+  milestones      Milestone[]
+  weeklyReviews   WeeklyReview[]
+  planAdjustments PlanAdjustment[]
+  finalReflection FinalReflection?
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+}
+
+model Pillar {
+  id          String  @id @default(cuid())
+  challengeId String
+  name        String
+  description String?
+  /// lucide-react icon name.
+  icon        String  @default("target")
+  sortOrder   Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  challenge Challenge     @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  actions   DailyAction[]
+
+  @@unique([challengeId, name])
+  @@index([challengeId, sortOrder])
+}
+
+model ChallengeDay {
+  id          String @id @default(cuid())
+  challengeId String
+
+  dayNumber Int
+  date      DateTime @db.Date
+
+  phase Phase
+
+  /// True when the user swapped today for the reduced fallback plan.
+  isMinimumDay       Boolean             @default(false)
+  difficultyFeedback DifficultyFeedback?
+
+  /// Set when the user explicitly taps "Finish Day".
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  challenge  Challenge       @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  actions    DailyAction[]
+  priorities DailyPriority[]
+  reflection DailyReflection?
+
+  @@unique([challengeId, dayNumber])
+  @@unique([challengeId, date])
+  @@index([challengeId, date])
+}
+
+model DailyAction {
+  id             String  @id @default(cuid())
+  challengeDayId String
+  pillarId       String?
+
+  title       String
+  description String?
+
+  estimatedMinutes Int @default(10)
+
+  completed Boolean @default(false)
+  /// Optional actions are excluded from completion percentages.
+  optional  Boolean @default(false)
+
+  /// The Minimum Day version of this action. "Reduce the requirement, not the commitment."
+  minimumVersionTitle   String?
+  minimumVersionMinutes Int?
+
+  sortOrder   Int       @default(0)
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  challengeDay ChallengeDay @relation(fields: [challengeDayId], references: [id], onDelete: Cascade)
+  pillar       Pillar?      @relation(fields: [pillarId], references: [id], onDelete: SetNull)
+
+  @@index([challengeDayId, sortOrder])
+  @@index([pillarId])
+}
+
+/// Optional user-authored top-3 for the day. Separate from generated actions.
+model DailyPriority {
+  id             String  @id @default(cuid())
+  challengeDayId String
+  position       Int
+  text           String
+  completed      Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  challengeDay ChallengeDay @relation(fields: [challengeDayId], references: [id], onDelete: Cascade)
+
+  @@unique([challengeDayId, position])
+}
+
+model DailyReflection {
+  id             String @id @default(cuid())
+  challengeDayId String @unique
+
+  dayFeeling         DayFeeling?
+  note               String?
+  whatHelped         String?
+  whatGotInWay       String?
+  tomorrowAdjustment String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  challengeDay ChallengeDay @relation(fields: [challengeDayId], references: [id], onDelete: Cascade)
+}
+
+model Milestone {
+  id          String @id @default(cuid())
+  challengeId String
+
+  dayNumber   Int
+  title       String
+  description String?
+  achieved    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([challengeId, dayNumber])
+}
+
+model WeeklyReview {
+  id          String @id @default(cuid())
+  challengeId String
+
+  weekNumber Int
+
+  wentWell           String?
+  struggledWith      String?
+  /// Obstacle slugs selected during the review.
+  mainObstacle       String[]            @default([])
+  difficultyFeedback DifficultyFeedback?
+  nextWeekChange     String?
+
+  /// Snapshot so the review stays truthful even if data is edited later.
+  completionRate Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([challengeId, weekNumber])
+}
+
+/// Every change to future days is recorded with a human-readable rationale.
+/// Completed history is never rewritten: appliedFromDay is always in the future.
+model PlanAdjustment {
+  id          String @id @default(cuid())
+  challengeId String
+
+  source         AdjustmentSource
+  rationale      String
+  summary        String
+  appliedFromDay Int
+  daysAffected   Int              @default(0)
+
+  createdAt DateTime @default(now())
+
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@index([challengeId, createdAt])
+}
+
+model FinalReflection {
+  id          String @id @default(cuid())
+  challengeId String @unique
+
+  reflection    String?
+  biggestChange String?
+  nextGoal      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+}
