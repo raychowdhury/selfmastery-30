@@ -101,6 +101,13 @@ Two workflows in `.github/workflows/`.
 No secrets. It builds against a placeholder API URL, because what it is checking
 is that the code compiles and behaves, not where it points.
 
+`@emnapi/core` and `@emnapi/runtime` are in `devDependencies` and nothing
+imports them. Do not remove them. They are unsatisfied peer dependencies of the
+`wasm-runtime` bundled inside `@tailwindcss/oxide-wasm32-wasi`, which is part of
+the dependency tree on linux-x64 but not on darwin-arm64 — so npm never records
+them when the lockfile is written on a Mac, and `npm ci` on the runner fails the
+in-sync check. Declaring them explicitly is what pins them into the lockfile.
+
 ### `ios-release.yml` — tag push
 
 ```bash
