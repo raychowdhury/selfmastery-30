@@ -59,11 +59,16 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    // The font variable class must sit on <html>: the design tokens consume
+    // var(--font-inter) inside custom properties defined on :root, and a
+    // custom property whose var() is undefined at that scope computes to
+    // guaranteed-invalid — silently dropping the entire font stack to the
+    // system default.
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className={`${inter.variable} antialiased`}>
+      <body className="antialiased">
         {children}
       </body>
     </html>
