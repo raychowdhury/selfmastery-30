@@ -1,1 +1,1 @@
-https://[YOUR-DOMAIN]/privacy
+https://selfmastery-30.vercel.app/privacy

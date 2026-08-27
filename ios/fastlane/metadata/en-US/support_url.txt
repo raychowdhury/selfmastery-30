@@ -1,1 +1,1 @@
-https://[YOUR-DOMAIN]/support
+https://selfmastery-30.vercel.app/support
