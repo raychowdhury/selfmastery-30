@@ -22,6 +22,7 @@ export default defineConfig({
       process.env["DATABASE_URL_UNPOOLED"] ||
       process.env["DATABASE_URL"] ||
       undefined,
-    shadowDatabaseUrl: process.env["SHADOW_DATABASE_URL"],
+    // Same || rule: a blank SHADOW_DATABASE_URL in a dashboard is P1013.
+    shadowDatabaseUrl: process.env["SHADOW_DATABASE_URL"] || undefined,
   },
 });
