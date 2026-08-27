@@ -152,6 +152,16 @@ struct TodayScreen: View {
     @ViewBuilder
     private func header(model: TodayModel) -> some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.s) {
+            // The bar leads the header: how far into the 30 days you are is
+            // the first thing the screen answers.
+            ProgressView(
+                value: Double(model.dayNumber),
+                total: Double(model.challenge?.lengthDays ?? 30)
+            )
+            .tint(Theme.Palette.accent)
+            .padding(.bottom, Theme.Spacing.xs)
+            .accessibilityLabel("Day \(model.dayNumber) of \(model.challenge?.lengthDays ?? 30)")
+
             Text(model.dateLabel)
                 .font(Theme.Typography.caption)
                 .foregroundStyle(Theme.Palette.secondaryText)
@@ -169,14 +179,6 @@ struct TodayScreen: View {
             if model.isMinimumDay {
                 Chip(text: "Minimum Day", tint: Theme.Palette.secondaryText)
             }
-
-            ProgressView(
-                value: Double(model.dayNumber),
-                total: Double(model.challenge?.lengthDays ?? 30)
-            )
-            .tint(Theme.Palette.accent)
-            .padding(.top, Theme.Spacing.xs)
-            .accessibilityLabel("Day \(model.dayNumber) of \(model.challenge?.lengthDays ?? 30)")
         }
     }
 
