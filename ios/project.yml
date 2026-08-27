@@ -20,7 +20,7 @@ settings:
     GCC_WARN_ABOUT_RETURN_TYPE: YES_ERROR
     SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
     MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "1"
+    CURRENT_PROJECT_VERSION: "2"
   configs:
     Debug:
       SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
@@ -44,7 +44,10 @@ targets:
         INFOPLIST_FILE: SelfMastery/Resources/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
-        TARGETED_DEVICE_FAMILY: "1,2"
+        # iPhone only. The iPad layout was never designed or tested, and shipping a
+        # device family you have not looked at is how iPad-shaped rejections
+        # happen. iPhone apps still run on iPad in compatibility mode.
+        TARGETED_DEVICE_FAMILY: "1"
         SUPPORTS_MACCATALYST: NO
         CODE_SIGN_STYLE: Automatic
         GENERATE_INFOPLIST_FILE: NO
