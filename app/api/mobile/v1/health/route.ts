@@ -38,6 +38,17 @@ export const GET = handler(async () => {
       email,
       rateLimiting,
     },
+    // Which mail variables are non-empty — presence only, never values. The
+    // difference between "not configured" and "one variable pasted blank" is
+    // otherwise invisible from outside, and blank-but-present has already
+    // burned a deploy afternoon once.
+    mailVariables: {
+      MAIL_FROM: Boolean(process.env.MAIL_FROM),
+      SMTP_HOST: Boolean(process.env.SMTP_HOST),
+      SMTP_USER: Boolean(process.env.SMTP_USER),
+      SMTP_PASSWORD: Boolean(process.env.SMTP_PASSWORD),
+      RESEND_API_KEY: Boolean(process.env.RESEND_API_KEY),
+    },
     // Named so the checklist can quote them directly.
     notes: {
       email: email
