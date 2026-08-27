@@ -167,7 +167,26 @@ export default async function TodayPage() {
         </div>
       </header>
 
-      <Panel className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+      {/* The prototype's mobile take compacts the goal to one line — the card
+          would push today's actions below the fold on a phone. The full card
+          returns at sm:, as in the desktop take. */}
+      <div className="mt-5 flex items-center gap-2 sm:hidden">
+        <span
+          aria-hidden
+          className="size-[5px] shrink-0 rounded-full bg-[var(--color-accent)]"
+        />
+        <span className="min-w-0 flex-1 truncate text-[14px]">
+          {challenge.goal}
+        </span>
+        <Link
+          href="/challenge"
+          className="shrink-0 text-[13px] no-underline hover:underline"
+        >
+          View
+        </Link>
+      </div>
+
+      <Panel className="mt-7 hidden flex-col gap-3 sm:flex sm:flex-row sm:items-center sm:gap-4">
         <div className="min-w-0 flex-1">
           <div className="eyebrow">Your 30-day goal</div>
           <div className="heading mt-1 text-[15px] sm:text-[16px]">
