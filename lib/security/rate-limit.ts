@@ -14,8 +14,13 @@ import { Redis } from "@upstash/redis";
  * so it is logged loudly once at startup rather than passing silently.
  */
 
-const url = process.env.UPSTASH_REDIS_REST_URL;
-const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+// KV_REST_API_* are the names Vercel's Upstash marketplace integration
+// injects; UPSTASH_REDIS_REST_* are Upstash's own. Accept both so connecting
+// the integration is enough. || not ??: a blank variable counts as unset.
+const url =
+  process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+const token =
+  process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 
 const redis = url && token ? new Redis({ url, token }) : null;
 
