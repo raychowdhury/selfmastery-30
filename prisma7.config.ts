@@ -14,10 +14,14 @@ export default defineConfig({
     // DATABASE_URL_UNPOOLED is what Vercel's Neon integration injects; it does
     // not create DIRECT_URL, and requiring a hand-copied variable next to an
     // auto-provisioned one is how the two end up pointing at different places.
+    // || rather than ??: a variable created with an empty value would satisfy
+    // ?? and hand Prisma an empty url — which is a real dashboard mistake, and
+    // exactly the "Connection url is empty" failure it produces.
     url:
-      process.env["DIRECT_URL"] ??
-      process.env["DATABASE_URL_UNPOOLED"] ??
-      process.env["DATABASE_URL"],
+      process.env["DIRECT_URL"] ||
+      process.env["DATABASE_URL_UNPOOLED"] ||
+      process.env["DATABASE_URL"] ||
+      undefined,
     shadowDatabaseUrl: process.env["SHADOW_DATABASE_URL"],
   },
 });
