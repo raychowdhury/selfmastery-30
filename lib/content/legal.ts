@@ -25,21 +25,23 @@ export const OPERATOR = {
  *  common compliance failure. */
 export const PROCESSORS = [
   {
-    name: "[HOSTING PROVIDER]",
+    name: "Vercel Inc.",
     purpose: "Runs the application",
     data: "Requests, IP addresses",
   },
   {
-    name: "[DATABASE PROVIDER]",
+    name: "Neon Inc.",
     purpose: "Stores your account and challenges",
     data: "All account data",
   },
   {
-    name: "[RATE LIMIT PROVIDER]",
+    name: "Upstash Inc.",
     purpose: "Prevents sign-up and sign-in abuse",
     data: "IP address, email",
   },
   {
+    // Depends on which transport DEPLOY.md section 6 ends up on:
+    // "Google LLC (Gmail)" for the SMTP path, "Resend Inc." for the API path.
     name: "[EMAIL PROVIDER]",
     purpose: "Sends password reset emails",
     data: "Email address",

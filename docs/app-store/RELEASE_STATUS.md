@@ -1,6 +1,6 @@
 # Release status
 
-Last updated: 26 August 2026 · App version 1.0.0 (build 1)
+Last updated: 27 August 2026 · App version 1.0.0 (build 1)
 
 ## Dashboard
 
@@ -19,9 +19,10 @@ Last updated: 26 August 2026 · App version 1.0.0 (build 1)
 | Password Reset Email | **READY** — free Gmail SMTP path, no domain needed |
 | Demo Account | **READY** — one command creates it |
 | App Review Notes | **READY** |
-| Production Backend | **BLOCKED** — needs your Vercel/Neon accounts |
-| TestFlight | **BLOCKED** — needs an Apple Developer account |
-| Final Archive | **BLOCKED** — needs a signing identity |
+| Production Backend | **BLOCKED** — needs your Vercel/Neon accounts (DEPLOY.md 1–4, ~10 min) |
+| TestFlight | **BLOCKED** — account exists; needs the real bundle ID registered and a first archive to mint the Distribution certificate. After that, `git tag v1.0.0` uploads automatically |
+| Final Archive | **BLOCKED** — same first archive mints the signing identity |
+| CI | **READY** — tests + smoke on every push; tag-triggered TestFlight release workflow wired (8 repo secrets needed) |
 
 Three blockers remain. All three require accounts only you can create.
 
@@ -162,8 +163,16 @@ SELFMASTERY_API_URL=https://your-domain ./ios/generate.sh
 
 ### TestFlight and Final Archive — BLOCKER
 
-Both need a paid Apple Developer account and a signing identity. Register a real
-bundle identifier, then Archive and upload from Xcode.
+The Apple Developer account exists (team F5MY9BC25S). What remains:
+
+1. Register the real bundle identifier in the developer portal.
+2. Archive once from Xcode for App Store distribution — this creates the
+   Apple Distribution certificate (only a Development one exists locally).
+3. Export that certificate as a `.p12`, create an App Store Connect API key,
+   and add the eight repository secrets from docs/ios/RELEASE_PROCESS.md.
+
+From then on `git tag v1.0.0 && git push origin v1.0.0` builds, signs and
+uploads to TestFlight on its own. Nothing submits for review automatically.
 
 ## Verification
 
