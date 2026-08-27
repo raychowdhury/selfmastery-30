@@ -183,14 +183,11 @@ struct TodayScreen: View {
     @ViewBuilder
     private func actionsSection(model: TodayModel) -> some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Today")
-                    .font(Theme.Typography.sectionTitle)
-                    .accessibilityAddTraits(.isHeader)
-                Text("Keep it simple. Just show up.")
-                    .font(Theme.Typography.body)
-                    .foregroundStyle(Theme.Palette.secondaryText)
-            }
+            // The nav bar already says "Today"; repeating it as a section
+            // heading was one of the floating words. The quiet line stays.
+            Text("Keep it simple. Just show up.")
+                .font(Theme.Typography.body)
+                .foregroundStyle(Theme.Palette.secondaryText)
 
             VStack(spacing: 0) {
                 ForEach(model.actions) { action in

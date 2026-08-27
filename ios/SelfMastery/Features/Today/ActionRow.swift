@@ -23,12 +23,9 @@ struct ActionRow: View {
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
 
-                if let description = action.description, !description.isEmpty {
-                    Text(description)
-                        .font(Theme.Typography.caption)
-                        .foregroundStyle(Theme.Palette.secondaryText)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                // No description line: the prototype's mobile take keeps rows to
+                // title + tags. The sentence still reaches VoiceOver below —
+                // spoken context costs no vertical space.
 
                 HStack(spacing: Theme.Spacing.s) {
                     Chip(text: action.estimatedMinutes.formattedMinutes)
@@ -85,6 +82,9 @@ struct ActionRow: View {
         var parts = [action.title, action.estimatedMinutes.formattedMinutes]
         if let pillar = action.pillarName { parts.append(pillar) }
         if action.optional { parts.append("Optional") }
+        if let description = action.description, !description.isEmpty {
+            parts.append(description)
+        }
         return parts.joined(separator: ", ")
     }
 }
