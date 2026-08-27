@@ -256,7 +256,9 @@ struct BannerRow: View {
     }
 }
 
-/// Kept compact on purpose: a reminder, not a second headline.
+/// One line, per the prototype's mobile take: an accent dot, the goal, and
+/// "View". The full card belongs to wide layouts; on a phone it pushed
+/// today's actions below the fold, and the goal is a reminder, not the task.
 struct GoalReminder: View {
     let challenge: ChallengeDTO
 
@@ -264,22 +266,22 @@ struct GoalReminder: View {
         NavigationLink {
             ChallengeDetailScreen(challenge: challenge)
         } label: {
-            VStack(alignment: .leading, spacing: 4) {
-                EyebrowLabel(text: "Your 30-day goal")
+            HStack(spacing: Theme.Spacing.s) {
+                Circle()
+                    .fill(Theme.Palette.accent)
+                    .frame(width: 5, height: 5)
                 Text(challenge.goal)
-                    .font(Theme.Typography.actionTitle)
+                    .font(Theme.Typography.body)
                     .foregroundStyle(Theme.Palette.text)
-                    .multilineTextAlignment(.leading)
-                if let why = challenge.whyItMatters, !why.isEmpty {
-                    Text("Because \(why.lowercasedFirst)")
-                        .font(Theme.Typography.caption)
-                        .foregroundStyle(Theme.Palette.secondaryText)
-                        .multilineTextAlignment(.leading)
-                }
+                    .lineLimit(1)
+                Spacer(minLength: Theme.Spacing.s)
+                Text("View")
+                    .font(Theme.Typography.caption)
+                    .foregroundStyle(Theme.Palette.accent)
             }
-            .surfaceCard()
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Your 30-day goal: \(challenge.goal)")
         .accessibilityHint("Opens your goal")
     }
 }
