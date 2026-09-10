@@ -5,7 +5,6 @@ import { Check } from "lucide-react";
 
 import { toggleActionAction } from "@/actions/challenge";
 import { Rule } from "@/components/ui/rule";
-import { Tag } from "@/components/ui/tag";
 
 export interface ActionRowData {
   id: string;
@@ -52,7 +51,7 @@ export function ActionRow({
           style={{ opacity: completed ? 0.55 : 1 }}
         >
           <div
-            className="heading text-[15px] sm:text-[17px]"
+            className="text-[15px] leading-[1.3] sm:text-[17px]"
             style={{
               textDecorationLine: completed ? "line-through" : "none",
               textDecorationColor: "var(--color-neutral-600)",
@@ -61,19 +60,9 @@ export function ActionRow({
             {action.title}
           </div>
 
-          {action.description ? (
-            <p className="text-muted mt-1 mb-0 hidden text-[13px] sm:block">
-              {action.description}
-            </p>
-          ) : null}
-
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            <Tag variant="neutral">{action.minutes} min</Tag>
-            {action.pillarName ? (
-              <Tag variant="outline">{action.pillarName}</Tag>
-            ) : null}
-            {action.optional ? <Tag variant="neutral">Optional</Tag> : null}
-          </div>
+          {/* The Calm rows carry the time as a quiet subtitle — no category or
+              "optional" chips — so the checklist reads at a glance. */}
+          <div className="text-muted mt-1 text-[13px]">{action.minutes} min</div>
         </div>
 
         <button
