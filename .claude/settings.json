@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s --max-time 20 -X POST http://127.0.0.1:*)",
+      "Bash(curl -s --max-time 20 http://127.0.0.1:*)"
+    ]
+  }
+}
