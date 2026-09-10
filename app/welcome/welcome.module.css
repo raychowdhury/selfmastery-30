@@ -1,0 +1,215 @@
+/* The Calm landing. Values are lifted from the prototype's landing artboard;
+   the phone frame becomes the full viewport on a real device. */
+
+.frame {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 60px 28px 150px;
+  overflow: hidden;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  background:
+    radial-gradient(
+      ellipse 120% 55% at 50% -15%,
+      color-mix(in srgb, var(--color-accent) 9%, transparent),
+      transparent 65%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-surface) 70%, var(--color-page)),
+      var(--color-page) 55%
+    );
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  animation: calm-in 0.4s ease;
+}
+
+.eyebrow {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.markWrap {
+  position: relative;
+  margin-top: 56px;
+}
+
+.glow {
+  position: absolute;
+  left: -40px;
+  top: -30px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-accent) 22%, transparent),
+    transparent 70%
+  );
+  animation: calm-glow 4s ease-in-out infinite alternate;
+}
+
+.mark {
+  position: relative;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: clamp(128px, 46vw, 184px);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--color-accent);
+}
+
+.dots {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 10px;
+  margin-top: 36px;
+  width: 190px;
+}
+
+.dotOn,
+.dotOff {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-sizing: border-box;
+  animation: calm-dot 0.4s ease both;
+}
+.dotOn {
+  background: var(--color-accent);
+  border: 1px solid var(--color-accent);
+}
+.dotOff {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent);
+}
+
+.headline {
+  font-size: 28px;
+  line-height: 1.2;
+  margin: 40px 0 0;
+  text-wrap: pretty;
+}
+
+.sub {
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 14px 0 0;
+}
+
+/* Actions pinned to the bottom, behind a soft blur — one tap from starting
+   however far someone reads. */
+.bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 16px max(28px, env(safe-area-inset-left)) calc(24px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: color-mix(in srgb, var(--color-page) 62%, transparent);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-top: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
+}
+
+/* The Calm app's button is a full-width pill in both themes. The primary
+   follows the theme's accent treatment (outline in Nocturne, filled in
+   Modernist via the .light rules in globals.css) — here it is spelled out so
+   the landing does not depend on the shared .btn width/shape. */
+.primary,
+.ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 50px;
+  padding: 13px 20px;
+  border-radius: 999px;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.primary {
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  background: transparent;
+}
+.primary:hover {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+/* Modernist primary is a solid vermilion block, matching the light theme. */
+:global(.light) .primary {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+:global(.light) .primary:hover {
+  background: var(--color-accent-hover);
+}
+
+.ghost {
+  color: var(--color-text);
+  border: 1px solid color-mix(in srgb, var(--color-text) 22%, transparent);
+  background: transparent;
+}
+.ghost:hover {
+  background: color-mix(in srgb, var(--color-text) 6%, transparent);
+}
+
+@keyframes calm-in {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes calm-glow {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+@keyframes calm-dot {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .content,
+  .glow,
+  .dotOn,
+  .dotOff {
+    animation: none;
+  }
+}

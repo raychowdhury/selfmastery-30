@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/nocturne-3a258e21-e006-4482-baa3-0536e2fe904f/styles.css">
+<script src="_ds/nocturne-3a258e21-e006-4482-baa3-0536e2fe904f/_ds_bundle.js"></script>
+<link rel="stylesheet" href="modernist-scoped.css">
+<style>
+body{margin:0;background:#2b2c35}
+a{color:var(--color-accent)}a:hover{color:var(--color-accent-400)}
+.calm-frame textarea.input{min-height:72px}
+.calm-frame .btn{border-radius:999px;width:100%;min-height:50px;padding:13px 20px;font-size:15px;font-weight:500;letter-spacing:0.01em;display:inline-flex;align-items:center;justify-content:center;text-align:center;margin:0}
+.calm-frame .btn-ghost{border:1px solid color-mix(in srgb, var(--color-text) 22%, transparent)}
+.calm-frame .input{border-radius:14px}
+@keyframes calm-pop{0%{transform:scale(0.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+@keyframes calm-rise{0%{transform:translateY(24px);opacity:0}100%{transform:translateY(0);opacity:1}}
+@keyframes calm-glow{0%{transform:scale(0.9);opacity:0.7}100%{transform:scale(1.1);opacity:1}}
+@keyframes calm-dot{0%{opacity:0;transform:scale(0.4)}100%{opacity:1;transform:scale(1)}}
+@keyframes calm-in{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important}}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 28px 24px 64px; font-family: Inter, system-ui, sans-serif; color: #a0a2b0;">
+  <div style="width: 390px; max-width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+    <div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;">SelfMastery 30 · calm</div>
+
+  </div>
+  <div style="width: 390px; max-width: 100%; display: flex; flex-wrap: wrap; gap: 4px; margin: 14px 0 18px;">
+    <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="10"><button type="button" style="{{ tab.style }}" onClick="{{ tab.go }}">{{ tab.label }}</button></sc-for>
+  </div>
+
+  <div class="calm-frame ds-{{ themeKey }}" style="position: relative; width: 390px; height: 844px; overflow: hidden; border-radius: 36px; background: radial-gradient(ellipse 120% 55% at 50% -15%, color-mix(in srgb, var(--color-accent) 9%, transparent), transparent 65%), linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 70%, var(--color-bg)), var(--color-bg) 55%); color: var(--color-text); font-family: var(--font-body); border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 24px 60px rgba(0,0,0,0.45); display: flex; flex-direction: column; padding: 60px 28px 150px;">
+
+    <button type="button" onClick="{{ toggleTheme }}" aria-label="Toggle appearance" style="position: absolute; top: 14px; right: 20px; z-index: 5; width: 44px; height: 44px; display: grid; place-items: center; background: none; border: none; cursor: pointer; padding: 0; color: color-mix(in srgb, var(--color-text) 60%, transparent);">
+      <sc-if value="{{ isDark }}" hint-placeholder-val="{{ true }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></sc-if>
+      <sc-if value="{{ isLight }}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></sc-if>
+    </button>
+
+    <sc-if value="{{ hasTopNav }}" hint-placeholder-val="{{ false }}">
+    <nav aria-label="Primary" style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 4; display: grid; grid-template-columns: repeat(3, 1fr); padding: 6px 12px 22px; background: color-mix(in srgb, var(--color-bg) 72%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);">
+      <button type="button" aria-label="Today" style="{{ nb.today }}" onClick="{{ go.today }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="9 12 11.5 14.5 15.5 10"></polyline></svg><span>Today</span></button>
+      <button type="button" aria-label="30 days" style="{{ nb.progress }}" onClick="{{ go.progress }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"></rect><path d="M3 9h18M8 2v4M16 2v4"></path></svg><span>30 days</span></button>
+      <button type="button" aria-label="Settings" style="{{ nb.settings }}" onClick="{{ go.settings }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg><span>Settings</span></button>
+    </nav>
+    </sc-if>
+
+    <sc-if value="{{ is.landing }}" hint-placeholder-val="{{ true }}">
+    <div style="display: flex; flex-direction: column; flex: 1; animation: calm-in 0.4s ease;">
+      <div style="font-family: var(--font-heading); font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;">SelfMastery</div>
+      <div style="position: relative; margin-top: 56px;">
+        <div style="position: absolute; left: -40px; top: -30px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 22%, transparent), transparent 70%); animation: calm-glow 4s ease-in-out infinite alternate;"></div>
+        <div style="position: relative; font-family: var(--font-heading); font-size: 184px; line-height: 0.9; letter-spacing: -0.05em; color: transparent; -webkit-text-stroke: 1.5px var(--color-accent);">30</div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(10, 1fr); gap: 10px; margin-top: 36px; width: 190px;">
+        <sc-for list="{{ landingDots }}" as="ld" hint-placeholder-count="30"><span style="{{ ld.style }}"></span></sc-for>
+      </div>
+      <h1 style="font-size: 28px; line-height: 1.2; margin: 40px 0 0; text-wrap: pretty;">Become the person you keep saying you want to be.</h1>
+      <p class="text-muted" style="font-size: 15px; line-height: 1.5; margin: 14px 0 0;">One goal. Three small actions a day. Thirty days.</p>
+    </div>
+    <div style="position: absolute; left: 0; right: 0; bottom: {{ barBottom }}; padding: 16px 28px 24px; background: color-mix(in srgb, var(--color-bg) 62%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent); display: flex; flex-direction: column; gap: 10px;">
+      <button type="button" class="btn btn-primary btn-block" onClick="{{ go.onboarding }}">Start my 30 days</button>
+      <button type="button" class="btn btn-ghost" onClick="{{ go.today }}">I already have an account</button>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ is.onboarding }}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; flex-direction: column; flex: 1; animation: calm-in 0.3s ease;">
+      <div style="display: flex; align-items: center; gap: 6px; margin: -12px 0 0 -12px;"><button type="button" aria-label="Back" onClick="{{ go.landing }}" style="width: 44px; height: 44px; display: grid; place-items: center; background: none; border: none; cursor: pointer; padding: 0; color: inherit;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button><div class="text-muted" style="font-size: 13px;">Step 2 of 6</div></div>
+      <h1 style="font-size: 26px; line-height: 1.2; margin: 22px 0 0; text-wrap: pretty;">What would make the next 30 days meaningful?</h1>
+      <div style="display: flex; flex-direction: column; margin-top: 32px;">
+        <sc-for list="{{ areas }}" as="a" hint-placeholder-count="8">
+          <button type="button" style="{{ a.style }}" onClick="{{ a.pick }}"><span>{{ a.label }}</span><sc-if value="{{ a.on }}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></sc-if></button>
+        </sc-for>
+      </div>
+    </div>
+    <div style="position: absolute; left: 0; right: 0; bottom: {{ barBottom }}; padding: 16px 28px 24px; background: color-mix(in srgb, var(--color-bg) 62%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);"><button type="button" class="btn btn-primary btn-block" onClick="{{ go.plan }}">Continue</button></div>
+    </sc-if>
+
+    <sc-if value="{{ is.plan }}" hint-placeholder-val="{{ false }}">
+    <div style="animation: calm-in 0.3s ease;">
+      <h1 style="font-size: 26px; line-height: 1.2; margin: 0;">Your next 30 days</h1>
+      <div style="display: flex; flex-direction: column; margin-top: 36px;">
+        <div style="padding: 18px 0;"><div class="text-muted" style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;">Goal</div><div style="font-size: 17px; margin-top: 6px;">{{ goalTitle }}</div></div>
+        <div style="height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent) 38%, transparent) 48px, color-mix(in srgb, var(--color-accent) 38%, transparent) calc(100% - 48px), transparent);"></div>
+        <div style="padding: 18px 0;"><div class="text-muted" style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;">Why it matters</div><div style="font-size: 15px; margin-top: 6px; line-height: 1.5;">"I want more energy and to feel better about myself."</div></div>
+        <div style="height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent) 38%, transparent) 48px, color-mix(in srgb, var(--color-accent) 38%, transparent) calc(100% - 48px), transparent);"></div>
+        <div style="padding: 18px 0;"><div class="text-muted" style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;">Time</div><div style="font-size: 15px; margin-top: 6px;">30 minutes a day</div></div>
+        <div style="height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent) 38%, transparent) 48px, color-mix(in srgb, var(--color-accent) 38%, transparent) calc(100% - 48px), transparent);"></div>
+        <div style="padding: 18px 0;"><div class="text-muted" style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;">Approach</div><div style="font-size: 15px; margin-top: 6px;">Balanced. Steady progress without overload.</div></div>
+      </div>
+    </div>
+    <div style="position: absolute; left: 0; right: 0; bottom: {{ barBottom }}; padding: 16px 28px 24px; background: color-mix(in srgb, var(--color-bg) 62%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);">
+      <p class="text-muted" style="font-size: 14px; margin: 0 0 14px;">Your plan is ready. One day at a time.</p>
+      <button type="button" class="btn btn-primary btn-block" onClick="{{ go.today }}">Begin Day 1</button>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ is.today }}" hint-placeholder-val="{{ false }}">
+    <div style="animation: calm-in 0.3s ease;">
+      <div class="text-muted" style="font-size: 13px;">Tuesday, August 25<sc-if value="{{ minimum }}" hint-placeholder-val="{{ false }}"> · Minimum day</sc-if></div>
+      <h1 style="font-size: 30px; line-height: 1.15; margin: 10px 0 0;">Day 8 of 30</h1>
+      <div class="text-muted" style="font-size: 14px; margin-top: 8px;">{{ goalTitle }}</div>
+      <div style="display: flex; flex-direction: column; margin-top: 48px;">
+        <sc-for list="{{ actions }}" as="act" hint-placeholder-count="3">
+          <div>
+            <div style="display: flex; align-items: center; gap: 16px; padding: 22px 0;">
+              <div style="flex: 1;">
+                <div style="font-size: 17px; line-height: 1.3; color: {{ act.color }};">{{ act.title }}</div>
+                <div class="text-muted" style="font-size: 13px; margin-top: 4px;">{{ act.time }}</div>
+              </div>
+              <button type="button" onClick="{{ act.toggle }}" aria-label="Mark complete" style="flex: none; width: 44px; height: 44px; display: grid; place-items: center; background: none; border: none; cursor: pointer; padding: 0;">
+                <sc-if value="{{ act.done }}" hint-placeholder-val="{{ false }}"><span style="width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--color-accent); display: grid; place-items: center; animation: calm-pop 0.25s ease;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span></sc-if>
+                <sc-if value="{{ act.undone }}" hint-placeholder-val="{{ true }}"><span style="width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--color-text) 35%, transparent); display: block;"></span></sc-if>
+              </button>
+            </div>
+            <div style="height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent) 38%, transparent) 48px, color-mix(in srgb, var(--color-accent) 38%, transparent) calc(100% - 48px), transparent);"></div>
+          </div>
+        </sc-for>
+      </div>
+      <div class="text-muted" style="font-size: 13px; margin-top: 28px;">{{ progressLabel }}</div>
+    </div>
+    <div style="position: absolute; left: 0; right: 0; bottom: {{ barBottom }}; padding: 16px 28px 24px; background: color-mix(in srgb, var(--color-bg) 62%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);">
+      <div style="margin-bottom: 6px;">
+        <sc-if value="{{ notMinimum }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ openSheet }}" style="font: 400 14px var(--font-body); color: inherit; background: none; border: none; cursor: pointer; min-height: 44px; padding: 0; display: inline-flex; align-items: center; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: color-mix(in srgb, var(--color-text) 35%, transparent);">Having a difficult day? Use a minimum day</button></sc-if>
+        <sc-if value="{{ minimum }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ restorePlan }}" style="font: 400 14px var(--font-body); color: inherit; background: none; border: none; cursor: pointer; min-height: 44px; padding: 0; display: inline-flex; align-items: center; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: color-mix(in srgb, var(--color-text) 35%, transparent);">Restore the full plan</button></sc-if>
+      </div>
+      <button type="button" class="btn btn-primary btn-block" onClick="{{ go.complete }}">Finish day</button>
+    </div>
+    <sc-if value="{{ sheet }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; background: color-mix(in srgb, var(--color-bg) 55%, transparent);" onClick="{{ closeSheet }}"></div>
+    <div style="position: absolute; left: 0; right: 0; bottom: 0; animation: calm-rise 0.35s ease; background: color-mix(in srgb, var(--color-surface) 88%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: var(--shadow-lg); border-top: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent); padding: 32px 28px 36px; border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+      <div style="font-family: var(--font-heading); font-size: 20px; line-height: 1.25;">Keep the commitment.<br>Reduce the requirement.</div>
+      <p class="text-muted" style="font-size: 14px; line-height: 1.5; margin: 12px 0 0;">Today's plan shrinks to its smallest meaningful version. Showing up small still counts.</p>
+      <div style="display: flex; flex-direction: column; margin-top: 24px;">
+        <div style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; font-size: 14px;"><span class="text-muted">Walk for 20 minutes</span><span>Walk for 5 minutes</span></div>
+        <div style="height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent) 38%, transparent) 48px, color-mix(in srgb, var(--color-accent) 38%, transparent) calc(100% - 48px), transparent);"></div>
+        <div style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; font-size: 14px;"><span class="text-muted">10 minutes without your phone</span><span>2 minutes</span></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 28px;">
+        <button type="button" class="btn btn-primary btn-block" onClick="{{ setMinimum }}">Switch to a minimum day</button>
+        <button type="button" class="btn btn-ghost" onClick="{{ closeSheet }}">Keep the original plan</button>
+      </div>
+    </div>
+    </sc-if>
+    </sc-if>
+
+    <sc-if value="{{ is.complete }}" hint-placeholder-val="{{ false }}">
+    <div style="animation: calm-in 0.3s ease;">
+      <div class="text-muted" style="font-size: 13px;">Tuesday, August 25</div>
+      <div style="width: 56px; height: 56px; border-radius: 50%; border: 1.5px solid var(--color-accent); display: grid; place-items: center; margin-top: 96px; animation: calm-pop 0.35s ease;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+      <h1 style="font-size: 32px; line-height: 1.15; margin: 28px 0 0;">Day 8 complete.</h1>
+      <div class="text-muted" style="font-size: 15px; margin-top: 12px; line-height: 1.5;">{{ doneCount }} of 3 actions · {{ focusMin }} minutes</div>
+      <div style="display: flex; flex-direction: column; margin-top: 48px;">
+        <div style="padding: 16px 0;"><div style="font-family: var(--font-heading); font-size: 30px; line-height: 1;">6</div><div class="text-muted" style="font-size: 13px; margin-top: 8px;">days in a row</div></div>
+        <div style="height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent) 38%, transparent) 48px, color-mix(in srgb, var(--color-accent) 38%, transparent) calc(100% - 48px), transparent);"></div>
+      </div>
+      <div class="text-muted" style="font-size: 14px; margin-top: 28px;">Come back tomorrow.</div>
+    </div>
+    <div style="position: absolute; left: 0; right: 0; bottom: {{ barBottom }}; padding: 16px 28px 24px; background: color-mix(in srgb, var(--color-bg) 62%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);"><button type="button" class="btn btn-primary btn-block" onClick="{{ go.progress }}">Done</button></div>
+    </sc-if>
+
+    <sc-if value="{{ is.progress }}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; flex-direction: column; flex: 1; animation: calm-in 0.3s ease;">
+      <h1 style="font-size: 26px; line-height: 1.2; margin: 0;">Your 30 days</h1>
+      <div class="text-muted" style="font-size: 14px; margin-top: 8px;">Progress is about returning, not perfection.</div>
+      <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 36px;">
+        <sc-for list="{{ days }}" as="d" hint-placeholder-count="30"><button type="button" aria-label="{{ d.aria }}" style="{{ d.style }}" onClick="{{ d.pick }}"><span>{{ d.n }}</span><span style="{{ d.dotStyle }}">{{ d.glyph }}</span></button></sc-for>
+      </div>
+      <div style="margin-top: 28px;">
+        <div style="font-size: 16px;">{{ selTitle }} · {{ selStatus }}</div>
+        <div class="text-muted" style="font-size: 13.5px; margin-top: 4px;">{{ selSub }}</div>
+      </div>
+      <div style="height: 1px; margin-top: 36px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent) 38%, transparent) 48px, color-mix(in srgb, var(--color-accent) 38%, transparent) calc(100% - 48px), transparent);"></div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 28px;">
+        <div><div style="font-family: var(--font-heading); font-size: 30px; line-height: 1;">6</div><div class="text-muted" style="font-size: 13px; margin-top: 8px;">days completed</div></div>
+        <div><div style="font-family: var(--font-heading); font-size: 30px; line-height: 1;">5</div><div class="text-muted" style="font-size: 13px; margin-top: 8px;">days in a row</div></div>
+      </div>
+    </div>
+    <div style="position: absolute; left: 0; right: 0; bottom: {{ barBottom }}; padding: 16px 28px 24px; background: color-mix(in srgb, var(--color-bg) 62%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent); display: flex; flex-direction: column; gap: 10px;">
+      <div class="text-muted" style="font-size: 13.5px;">Week 1 is done.</div>
+      <button type="button" class="btn btn-ghost" onClick="{{ go.reflection }}">Reflect on it</button>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ is.reflection }}" hint-placeholder-val="{{ false }}">
+    <div style="animation: calm-in 0.3s ease;">
+      <h1 style="font-size: 26px; line-height: 1.2; margin: 0;">Week 1.</h1>
+      <div class="text-muted" style="font-size: 14px; margin-top: 8px;">Two minutes to look back.</div>
+      <div style="margin-top: 36px;">
+        <div style="font-size: 15px;">What went well?</div>
+        <textarea class="input" aria-label="What went well" rows="3" placeholder="Small wins count." style="margin-top: 10px;"></textarea>
+      </div>
+      <div style="margin-top: 28px;">
+        <div style="font-size: 15px;">What got in your way?</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
+          <sc-for list="{{ chips }}" as="c" hint-placeholder-count="7"><button type="button" style="{{ c.style }}" onClick="{{ c.pick }}">{{ c.label }}</button></sc-for>
+        </div>
+      </div>
+      <div style="margin-top: 28px;">
+        <div style="font-size: 15px;">How did the difficulty feel?</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
+          <sc-for list="{{ diffs }}" as="d" hint-placeholder-count="3"><button type="button" style="{{ d.style }}" onClick="{{ d.pick }}">{{ d.label }}</button></sc-for>
+        </div>
+      </div>
+    </div>
+    <div style="position: absolute; left: 0; right: 0; bottom: {{ barBottom }}; padding: 16px 28px 24px; background: color-mix(in srgb, var(--color-bg) 62%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);"><button type="button" class="btn btn-primary btn-block" onClick="{{ go.today }}">Prepare week 2</button></div>
+    </sc-if>
+
+    <sc-if value="{{ is.templates }}" hint-placeholder-val="{{ false }}">
+    <div style="animation: calm-in 0.3s ease;">
+      <h1 style="font-size: 26px; line-height: 1.2; margin: 0;">Templates</h1>
+      <div class="text-muted" style="font-size: 14px; margin-top: 8px;">Proven 30-day paths. Make one yours.</div>
+      <div style="display: flex; flex-direction: column; margin-top: 32px;">
+        <sc-for list="{{ tpls }}" as="tp" hint-placeholder-count="8">
+          <div>
+            <button type="button" onClick="{{ go.onboarding }}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 17px 0; background: none; border: none; cursor: pointer; text-align: left; color: inherit; font: 400 16px var(--font-body);"><span>{{ tp.name }}</span><span class="text-muted" style="font-size: 13px; flex: none;">{{ tp.time }}</span></button>
+            <div style="height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent) 38%, transparent) 48px, color-mix(in srgb, var(--color-accent) 38%, transparent) calc(100% - 48px), transparent);"></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="position: absolute; left: 0; right: 0; bottom: {{ barBottom }}; padding: 16px 28px 24px; background: color-mix(in srgb, var(--color-bg) 62%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);"><button type="button" class="btn btn-ghost" onClick="{{ go.onboarding }}">Create my own goal</button></div>
+    </sc-if>
+
+    <sc-if value="{{ is.settings }}" hint-placeholder-val="{{ false }}">
+    <div style="animation: calm-in 0.3s ease;">
+      <h1 style="font-size: 26px; line-height: 1.2; margin: 0;">Settings</h1>
+      <div style="display: flex; flex-direction: column; margin-top: 36px;">
+        <div style="display: flex; justify-content: space-between; gap: 12px; padding: 17px 0; font-size: 16px;"><span>Name</span><span class="text-muted">Maya K.</span></div>
+        <div style="height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent) 38%, transparent) 48px, color-mix(in srgb, var(--color-accent) 38%, transparent) calc(100% - 48px), transparent);"></div>
+        <div style="display: flex; justify-content: space-between; gap: 12px; padding: 17px 0; font-size: 16px;"><span>Daily reminder</span><span class="text-muted">8:00 AM</span></div>
+        <div style="height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent) 38%, transparent) 48px, color-mix(in srgb, var(--color-accent) 38%, transparent) calc(100% - 48px), transparent);"></div>
+        <button type="button" onClick="{{ toggleTheme }}" style="display: flex; justify-content: space-between; gap: 12px; width: 100%; padding: 17px 0; background: none; border: none; cursor: pointer; text-align: left; color: inherit; font: 400 16px var(--font-body);"><span>Appearance</span><span class="text-muted">{{ themeLabel }}</span></button>
+        <div style="height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent) 38%, transparent) 48px, color-mix(in srgb, var(--color-accent) 38%, transparent) calc(100% - 48px), transparent);"></div>
+        <button type="button" onClick="{{ go.templates }}" style="display: flex; justify-content: space-between; gap: 12px; width: 100%; padding: 17px 0; background: none; border: none; cursor: pointer; text-align: left; color: inherit; font: 400 16px var(--font-body);"><span>Templates</span><span class="text-muted">Browse</span></button>
+        <div style="height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent) 38%, transparent) 48px, color-mix(in srgb, var(--color-accent) 38%, transparent) calc(100% - 48px), transparent);"></div>
+        <button type="button" onClick="{{ go.plan }}" style="display: flex; justify-content: space-between; gap: 12px; width: 100%; padding: 17px 0; background: none; border: none; cursor: pointer; text-align: left; color: inherit; font: 400 16px var(--font-body);"><span>Challenge</span><span class="text-muted">Day 8 of 30</span></button>
+        <div style="height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent) 38%, transparent) 48px, color-mix(in srgb, var(--color-accent) 38%, transparent) calc(100% - 48px), transparent);"></div>
+      </div>
+      <div class="text-muted" style="font-size: 14px; margin-top: 40px; line-height: 1.5;">{{ goalTitle }}. Balanced approach, 30 minutes a day.</div>
+    </div>
+    <div style="position: absolute; left: 0; right: 0; bottom: {{ barBottom }}; padding: 16px 28px 24px; background: color-mix(in srgb, var(--color-bg) 62%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);"><button type="button" class="btn btn-ghost" onClick="{{ openReset }}">Reset challenge</button></div>
+    <sc-if value="{{ resetOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 6; background: color-mix(in srgb, var(--color-bg) 55%, transparent);" onClick="{{ closeReset }}"></div>
+    <div role="alertdialog" aria-modal="true" style="position: absolute; left: 28px; right: 28px; top: 50%; transform: translateY(-50%); z-index: 7; animation: calm-pop 0.25s ease; background: color-mix(in srgb, var(--color-surface) 92%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: var(--shadow-lg); border-radius: var(--radius-lg); padding: 24px;">
+      <div style="font-family: var(--font-heading); font-size: 18px; line-height: 1.3;">Reset this challenge?</div>
+      <p class="text-muted" style="font-size: 14px; line-height: 1.5; margin: 8px 0 0;">Your 8 days of progress will be cleared. This can't be undone.</p>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 20px;">
+        <button type="button" class="btn btn-ghost" onClick="{{ go.onboarding }}">Reset</button>
+        <button type="button" class="btn btn-primary btn-block" onClick="{{ closeReset }}">Keep going</button>
+      </div>
+    </div>
+    </sc-if>
+    </sc-if>
+
+    <sc-if value="{{ is.day30 }}" hint-placeholder-val="{{ false }}">
+    <div style="animation: calm-in 0.3s ease;">
+      <div class="text-muted" style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;">30 of 30</div>
+      <h1 style="font-size: 32px; line-height: 1.15; margin: 18px 0 0; text-wrap: pretty;">You finished what you started.</h1>
+      <p class="text-muted" style="font-size: 15px; line-height: 1.5; margin: 14px 0 0;">Thirty days ago you decided to {{ goalLower }}.</p>
+      <div style="display: grid; grid-template-columns: repeat(10, 1fr); gap: 10px; margin-top: 40px;">
+        <sc-for list="{{ record }}" as="r" hint-placeholder-count="30"><span style="{{ r.style }}"></span></sc-for>
+      </div>
+      <div class="text-muted" style="font-size: 13px; margin-top: 12px;">24 active days · 17 in a row at most</div>
+      <div style="display: flex; flex-direction: column; margin-top: 40px;">
+        <div style="padding: 16px 0;"><div class="text-muted" style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;">Day 1</div><p style="font-size: 15px; line-height: 1.5; margin: 6px 0 0;">"I want more energy and to feel better about myself."</p></div>
+        <div style="height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent) 38%, transparent) 48px, color-mix(in srgb, var(--color-accent) 38%, transparent) calc(100% - 48px), transparent);"></div>
+        <div style="padding: 16px 0;"><div class="text-muted" style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;">Day 30</div><p style="font-size: 15px; line-height: 1.5; margin: 6px 0 0;">"The walks are just part of my day now. I don't negotiate with myself anymore."</p></div>
+      </div>
+    </div>
+    <div style="position: absolute; left: 0; right: 0; bottom: {{ barBottom }}; padding: 16px 28px 24px; background: color-mix(in srgb, var(--color-bg) 62%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent); display: flex; flex-direction: column; gap: 10px;">
+      <button type="button" class="btn btn-primary btn-block" onClick="{{ go.onboarding }}">Start my next 30 days</button>
+      <button type="button" class="btn btn-ghost" onClick="{{ go.progress }}">Review my journey</button>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;dark&quot;, &quot;light&quot;], &quot;default&quot;: &quot;dark&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Appearance&quot;}}">
+class Component extends DCLogic {
+  state = { screen: 'landing', theme: null, sheet: false, resetOpen: false, done: [true, false, false], minimum: false, area: 'Health', selDay: 6, obstacles: ['Motivation', 'Phone'], weekDiff: 'About right' };
+  renderVals() {
+    const S = this.state;
+    const theme = S.theme ?? this.props.theme ?? 'dark';
+    const themeKey = theme === 'dark' ? 'nocturne' : 'modernist';
+    const keys = ['landing', 'onboarding', 'plan', 'today', 'complete', 'progress', 'reflection', 'templates', 'settings', 'day30'];
+    const labels = ['Landing', 'Onboarding', 'Plan', 'Today', 'Day complete', '30 days', 'Reflection', 'Templates', 'Settings', 'Day 30'];
+    const go = {}; keys.forEach(k => go[k] = () => this.setState({ screen: k, sheet: false, resetOpen: false }));
+    const is = {}; keys.forEach(k => is[k] = S.screen === k);
+    const tabs = keys.map((k, i) => ({ label: labels[i], go: go[k], style: { padding: '5px 10px', borderRadius: '6px', cursor: 'pointer', font: '500 11.5px Inter, system-ui, sans-serif', border: '1px solid ' + (is[k] ? 'rgba(255,255,255,0.35)' : 'transparent'), color: is[k] ? '#e2e3ea' : '#8b8d9a', background: is[k] ? 'rgba(255,255,255,0.06)' : 'transparent' } }));
+    const tg = on => ({ padding: '6px 14px', cursor: 'pointer', font: '500 12px Inter, system-ui, sans-serif', border: 'none', color: on ? '#1b1c24' : '#a0a2b0', background: on ? '#e2e3ea' : 'transparent' });
+    const muted = 'color-mix(in srgb, var(--color-text) 60%, transparent)';
+    const faint = 'color-mix(in srgb, var(--color-text) 30%, transparent)';
+    const nbtn = on => ({ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', minHeight: '50px', background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer', font: '500 11px var(--font-body)', letterSpacing: '0.02em', color: on ? 'var(--color-accent)' : muted });
+    const nb = { today: nbtn(['today', 'complete'].includes(S.screen)), progress: nbtn(['progress', 'reflection', 'day30'].includes(S.screen)), settings: nbtn(['settings', 'templates'].includes(S.screen)) };
+    const hasTopNav = ['today', 'progress', 'settings', 'templates', 'reflection'].includes(S.screen);
+    const barBottom = hasTopNav ? '78px' : '0';
+    const goalMap = { Health: 'Become more physically active', Career: 'Move my career forward', Study: 'Study a little every day', Money: 'Get control of my money', Relationships: 'Spend more time with the people I love', Focus: 'Take back my attention', 'Personal growth': 'Show up for myself daily', 'Something else': 'One meaningful change' };
+    const goalTitle = goalMap[S.area];
+    const minimum = S.minimum;
+    const base = [['Walk for 20 minutes', 'Walk for 5 minutes', '20 min', '5 min', 20, 5], ['10 minutes without your phone', '2 minutes without your phone', '10 min', '2 min', 10, 2], ["Prepare tomorrow's walking time", "Prepare tomorrow's walking time", '5 min', '2 min', 5, 2]];
+    const actions = base.map((a, i) => ({ title: minimum ? a[1] : a[0], time: minimum ? a[3] : a[2], done: S.done[i], undone: !S.done[i], color: S.done[i] ? muted : 'inherit', toggle: () => { const d = this.state.done.slice(); d[i] = !d[i]; this.setState({ done: d }); } }));
+    const doneCount = S.done.filter(Boolean).length, left = 3 - doneCount;
+    const focusMin = base.reduce((t, a, i) => t + (S.done[i] ? a[minimum ? 5 : 4] : 0), 0);
+    const progressLabel = left === 0 ? 'You showed up today.' : left === 1 ? 'One more to go.' : left + ' left for today.';
+    const row = on => ({ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '15px 0', background: 'none', border: 'none', borderBottom: '1px solid color-mix(in srgb, var(--color-accent) 22%, transparent)', cursor: 'pointer', textAlign: 'left', font: '400 16px var(--font-body)', color: on ? 'var(--color-text)' : muted });
+    const areas = Object.keys(goalMap).map(a => ({ label: a, on: S.area === a, pick: () => this.setState({ area: a }), style: row(S.area === a) }));
+    const chip = on => ({ minHeight: '44px', padding: '8px 16px', borderRadius: 'var(--radius-md)', cursor: 'pointer', font: '400 14px var(--font-body)', border: '1px solid ' + (on ? 'var(--color-text)' : 'var(--color-divider)'), background: 'transparent', color: on ? 'var(--color-text)' : muted });
+    const chips = ['Time', 'Motivation', 'Phone', 'Work', 'Family', 'Energy', 'Other'].map(c => { const on = S.obstacles.includes(c); return { label: c, pick: () => this.setState({ obstacles: on ? this.state.obstacles.filter(x => x !== c) : this.state.obstacles.concat(c) }), style: chip(on) }; });
+    const diffs = ['Too easy', 'About right', 'Too hard'].map(d => ({ label: d, pick: () => this.setState({ weekDiff: d }), style: chip(S.weekDiff === d) }));
+    const specs = ['done', 'done', 'partial', 'done', 'miss', 'min', 'done', 'today'];
+    const mk = t => t === 'done' ? { dot: 'var(--color-accent)', bd: 'transparent', fg: 'inherit', status: 'Complete', sub: '3 of 3 actions · 35 minutes', glyph: '●' }
+      : t === 'partial' ? { dot: 'transparent', bd: 'var(--color-accent)', fg: 'inherit', status: 'Partial', sub: '2 of 3 actions · 22 minutes', glyph: '◐', dot: 'var(--color-accent)' }
+      : t === 'miss' ? { dot: 'transparent', bd: 'transparent', fg: muted, status: 'Missed', sub: 'Nothing logged. You came back.', glyph: '–', dot: muted }
+      : t === 'min' ? { dot: faint, bd: 'transparent', fg: 'inherit', status: 'Minimum day', sub: '2 of 2 reduced actions · 9 minutes', glyph: '○', dot: 'var(--color-accent)' }
+      : t === 'today' ? { dot: 'transparent', bd: 'transparent', fg: 'inherit', status: 'Today', sub: doneCount + ' of 3 actions so far', today: true }
+      : { dot: 'transparent', bd: 'transparent', fg: faint, status: 'Upcoming', sub: '3 actions planned' };
+    const days = Array.from({ length: 30 }, (_, i) => { const n = i + 1, m = mk(n <= 8 ? specs[i] : 'future'), sel = S.selDay === n; return { n: String(n), pick: () => this.setState({ selDay: n }),
+      aria: 'Day ' + n + ', ' + m.status, glyph: m.glyph || '', style: { height: '48px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', background: sel ? 'var(--color-surface)' : 'transparent', border: '1px solid ' + (m.today ? 'var(--color-accent)' : 'transparent'), borderRadius: 'var(--radius-md)', cursor: 'pointer', padding: 0, font: '400 13px var(--font-body)', color: m.fg },
+      dotStyle: { height: '10px', lineHeight: '10px', fontSize: '10px', color: m.glyph ? m.dot : 'transparent', display: 'grid', placeItems: 'center' } }; });
+    const dsel = mk(S.selDay <= 8 ? specs[S.selDay - 1] : 'future');
+    const vals = [80, 100, 60, 100, 0, 50, 100, 75, 100, 66, 0, 100, 100, 80, 100, 33, 100, 100, 0, 100, 66, 100, 100, 50, 100, 100, 75, 100, 100, 100];
+    const record = vals.map(v => ({ style: { display: 'block', width: '10px', height: '10px', borderRadius: '50%', boxSizing: 'border-box', background: v ? 'var(--color-accent)' : 'transparent', border: '1px solid ' + (v ? 'var(--color-accent)' : faint) } }));
+    const tpls = [['Build discipline', '15–30 min'], ['Get active', '20–40 min'], ['Study consistently', '30–60 min'], ['Reduce screen time', '10–20 min'], ['Read every day', '15–30 min'], ['Job search', '30–45 min'], ['Money reset', '10–20 min'], ['Sleep routine', '10–15 min']].map(t => ({ name: t[0], time: t[1] }));
+    const landingDots = Array.from({ length: 30 }, (_, i) => ({ style: { display: 'block', width: '10px', height: '10px', borderRadius: '50%', boxSizing: 'border-box', background: i < 8 ? 'var(--color-accent)' : 'transparent', border: '1px solid ' + (i < 8 ? 'var(--color-accent)' : faint), animation: 'calm-dot 0.4s ease both', animationDelay: (i * 35) + 'ms' } }));
+    return { themeKey, landingDots, themeLabel: theme === 'dark' ? 'Dark' : 'Light', isDark: theme === 'dark', isLight: theme === 'light',
+      toggleTheme: () => this.setState({ theme: theme === 'dark' ? 'light' : 'dark' }),
+      tabs, go, is, nb, hasTopNav, barBottom, resetOpen: S.resetOpen, openReset: () => this.setState({ resetOpen: true }), closeReset: () => this.setState({ resetOpen: false }), goalTitle, goalLower: goalTitle.charAt(0).toLowerCase() + goalTitle.slice(1),
+      actions, doneCount, focusMin, progressLabel, minimum, notMinimum: !minimum, sheet: S.sheet,
+      openSheet: () => this.setState({ sheet: true }), closeSheet: () => this.setState({ sheet: false }),
+      setMinimum: () => this.setState({ minimum: true, sheet: false }), restorePlan: () => this.setState({ minimum: false }),
+      areas, chips, diffs, days, selTitle: 'Day ' + S.selDay, selStatus: dsel.status, selSub: dsel.sub, record, tpls };
+  }
+}
+</script>
+</body>
+</html>
