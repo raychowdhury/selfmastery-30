@@ -96,34 +96,66 @@
 :root:where(.light) {
   color-scheme: light;
 
-  --color-page: #f6f6fa;
-  --color-bg: #fbfbfd;
-  --color-surface: #ffffff;
-  --color-surface-2: #f1f1f7;
-  --color-text: #1a1b2a;
-  /* accent-700: the darkest step that still reads as the brand hue, and the
-     only one that clears AA as text on a light ground. */
-  --color-accent: #5d5294;
-  --color-accent-2: #6b6597;
-  --color-on-accent: #ffffff;
-  --color-accent-on-tint: #423a6a;
-  --color-accent-hover: #423a6a;
-  --color-divider: color-mix(in srgb, #1a1b2a 14%, transparent);
-  --color-hairline: rgba(26, 27, 42, 0.1);
+  /* Light is the Modernist system from the Calm prototype — not a derived
+     Nocturne: warm paper ground, ink text, a red-orange accent, and Archivo
+     with heavy headings. The two themes are two personalities on one layout. */
+  --color-page: #f3f2f2;
+  --color-bg: #f3f2f2;
+  --color-surface: #eae9e9;
+  --color-surface-2: #e2e1e1;
+  --color-text: #201e1d;
+  --color-accent: #ec3013;
+  --color-accent-2: #e15b47;
+  /* Solid-fill controls in Modernist put page-coloured text on the accent. */
+  --color-on-accent: #f3f2f2;
+  --color-accent-on-tint: #ae1800;
+  --color-accent-hover: #dd2b0f;
+  --color-divider: color-mix(in srgb, #201e1d 40%, transparent);
+  --color-hairline: rgba(32, 30, 29, 0.12);
 
-  --color-neutral-100: #292b31;
-  --color-neutral-200: #3f424d;
-  --color-neutral-300: #595d6c;
-  --color-neutral-400: #696d7f;
-  --color-neutral-500: #75798c;
-  --color-neutral-600: #9397ab;
-  --color-neutral-700: #b2b6ca;
-  --color-neutral-800: #dcdfec;
-  --color-neutral-900: #eceef7;
+  --color-neutral-100: #f8f4f4;
+  --color-neutral-200: #eae7e7;
+  --color-neutral-300: #d7d3d3;
+  --color-neutral-400: #bab6b6;
+  --color-neutral-500: #9b9797;
+  --color-neutral-600: #7d7979;
+  --color-neutral-700: #605d5d;
+  --color-neutral-800: #444141;
+  --color-neutral-900: #2d2b2b;
 
-  --shadow-sm: 0 0 0 1px rgba(26, 27, 42, 0.08);
-  --shadow-md: 0 0 0 1px rgba(26, 27, 42, 0.07), 0 6px 18px rgba(26, 27, 42, 0.08);
-  --shadow-lg: 0 0 0 1px rgba(26, 27, 42, 0.08), 0 16px 40px rgba(26, 27, 42, 0.14);
+  --color-accent-100: #fff2ef;
+  --color-accent-200: #ffe0d9;
+  --color-accent-300: #ffc4b8;
+  --color-accent-400: #ff9783;
+  --color-accent-500: #ff563c;
+  --color-accent-600: #dd2b0f;
+  --color-accent-700: #ae1800;
+  --color-accent-800: #7c1405;
+  --color-accent-900: #4d170e;
+
+  --color-accent-2-100: #fff2ef;
+  --color-accent-2-200: #ffe0da;
+  --color-accent-2-300: #ffc4b9;
+  --color-accent-2-400: #ff9784;
+  --color-accent-2-500: #ef6853;
+  --color-accent-2-600: #c94b39;
+  --color-accent-2-700: #9e3526;
+  --color-accent-2-800: #71261b;
+  --color-accent-2-900: #471d16;
+
+  --font-heading: var(--font-archivo), "Archivo", system-ui, sans-serif;
+  --font-heading-weight: 800;
+  --font-body: var(--font-archivo), "Archivo", system-ui, sans-serif;
+
+  /* Modernist is square. The calm chrome overrides the shapes it owns —
+     pills and inputs — explicitly, so those stay rounded in both themes. */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+
+  --shadow-sm: 0 1px 2px color-mix(in srgb, #2d2b2b 14%, transparent);
+  --shadow-md: 0 3px 10px color-mix(in srgb, #2d2b2b 16%, transparent);
+  --shadow-lg: 0 12px 32px color-mix(in srgb, #2d2b2b 22%, transparent);
 }
 
 @theme inline {
@@ -247,6 +279,49 @@
   }
 
   /* ---------------------------------------------------------------------------
+     Calm chrome — shared by every app screen in the Calm design.
+     --------------------------------------------------------------------------- */
+
+  /* The accent-tinted fading rule that separates list rows. */
+  .calm-rule {
+    height: 1px;
+    border: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--color-accent) 38%, transparent) 48px,
+      color-mix(in srgb, var(--color-accent) 38%, transparent) calc(100% - 48px),
+      transparent
+    );
+  }
+
+  /* Translucent bar ground — pair with Tailwind's backdrop-blur-[18px];
+     a raw backdrop-filter declaration here gets dropped by the CSS minifier. */
+  .glass {
+    background: color-mix(in srgb, var(--color-bg) 62%, transparent);
+    border-top: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
+  }
+
+  /* The soft accent bloom behind the top of every app screen. */
+  .calm-glow {
+    background:
+      radial-gradient(
+        ellipse 120% 55% at 50% -15%,
+        color-mix(in srgb, var(--color-accent) 9%, transparent),
+        transparent 65%
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--color-surface) 70%, var(--color-bg)),
+        var(--color-bg) 55%
+      );
+  }
+
+  .calm-in { animation: calm-in 0.3s ease; }
+  .calm-rise { animation: calm-rise 0.35s ease; }
+  .calm-pop { animation: calm-pop 0.25s ease; }
+
+  /* ---------------------------------------------------------------------------
      Rules — a Nocturne signature: freestanding rules fade to transparent at
      both ends over 48px. Box outlines and in-control separators stay solid.
      --------------------------------------------------------------------------- */
@@ -283,8 +358,14 @@
     color: var(--color-text);
     background: transparent;
     border: 1px solid transparent;
-    padding: var(--space-2) calc(var(--space-3) * 1.2);
-    border-radius: var(--radius-md);
+    /* Calm chrome: every button is a pill with a real touch target. */
+    padding: 13px 20px;
+    min-height: 50px;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    text-align: center;
+    border-radius: 999px;
     transition: background-color 140ms ease, color 140ms ease,
       border-color 140ms ease, transform 140ms ease;
   }
@@ -295,14 +376,25 @@
   .btn-primary { color: var(--color-accent); border-color: var(--color-accent); }
   .btn-primary:hover { background: color-mix(in srgb, var(--color-accent) 12%, transparent); }
   .btn-primary:active { background: color-mix(in srgb, var(--color-accent) 22%, transparent); }
+  :root:where(.light) .btn-primary {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    border-color: transparent;
+  }
+  :root:where(.light) .btn-primary:hover { background: var(--color-accent-600); }
+  :root:where(.light) .btn-primary:active { background: var(--color-accent-700); }
 
   .btn-secondary { border-color: var(--color-divider); }
   .btn-secondary:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
   .btn-secondary:active { background: color-mix(in srgb, var(--color-text) 14%, transparent); }
 
-  .btn-ghost { color: var(--color-accent); padding-inline: var(--space-1); }
-  .btn-ghost:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
-  .btn-ghost:active { background: color-mix(in srgb, var(--color-accent) 18%, transparent); }
+  /* Calm ghost: a quiet neutral outline in the text colour, not the accent. */
+  .btn-ghost {
+    color: inherit;
+    border-color: color-mix(in srgb, var(--color-text) 22%, transparent);
+  }
+  .btn-ghost:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+  .btn-ghost:active { background: color-mix(in srgb, var(--color-text) 14%, transparent); }
 
   .btn-quiet { color: var(--color-neutral-500); padding-inline: var(--space-1); }
   .btn-quiet:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); color: var(--color-text); }
@@ -333,14 +425,14 @@
     caret-color: var(--color-accent);
     background: var(--color-surface);
     border: 1px solid var(--color-divider);
-    border-radius: var(--radius-md);
+    border-radius: 14px; /* calm chrome — rounded inputs in both themes */
     transition: border-color 140ms ease;
   }
   .input::placeholder { color: var(--color-neutral-500); }
   .input:hover { border-color: color-mix(in srgb, var(--color-text) 45%, transparent); }
   .input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
   .input[aria-invalid="true"] { border-color: #d38b80; }
-  textarea.input { min-height: 90px; resize: vertical; }
+  textarea.input { min-height: 72px; resize: vertical; }
 
   .seg {
     display: inline-flex;
@@ -696,4 +788,30 @@
   .tap-target { min-height: 44px; min-width: 44px; }
   .text-pretty { text-wrap: pretty; }
   .text-balance { text-wrap: balance; }
+}
+
+
+@keyframes calm-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes calm-rise {
+  0% { transform: translateY(24px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes calm-glow-anim {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  100% { transform: scale(1.1); opacity: 1; }
+}
+@keyframes calm-dot {
+  0% { opacity: 0; transform: scale(0.4); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes calm-in {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .calm-in, .calm-rise, .calm-pop { animation: none; }
 }

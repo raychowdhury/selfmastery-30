@@ -39,11 +39,9 @@ export default async function OnboardingPage({
   );
 
   return (
-    <div className="flex min-h-dvh flex-col items-center px-5 py-8 sm:py-10">
-      <div className="wordmark text-[13px]">
-        SELFMASTERY <span className="text-[var(--color-accent)]">30</span>
-      </div>
-      <main className="mt-10 flex w-full justify-center sm:mt-14">
+    <div className="calm-glow flex min-h-dvh flex-col items-center px-7 py-8">
+      <div className="wordmark text-[12px] tracking-[0.22em]">SELFMASTERY</div>
+      <main className="mt-8 flex w-full max-w-[430px] justify-center">
         <OnboardingWizard
           hints={hints}
           todayIso={format(new Date(), "yyyy-MM-dd")}

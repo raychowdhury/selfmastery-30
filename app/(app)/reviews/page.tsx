@@ -2,11 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ClipboardList } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Panel } from "@/components/ui/card";
+import { CalmRule } from "@/components/layout/calm-shell";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Rule } from "@/components/ui/rule";
-import { Tag } from "@/components/ui/tag";
 import { summariseWeek } from "@/lib/challenge/adjustment";
 import { reviewDays, weekForDay } from "@/lib/challenge/phases";
 import { requireUserId } from "@/lib/auth";
@@ -57,84 +54,71 @@ export default async function ReviewsPage() {
   });
 
   return (
-    <div>
-      <h1 className="text-[27px] sm:text-[36px]">Reviews</h1>
-      <p className="text-muted mt-1.5 text-[13px] sm:text-[15px]">
-        Every seven days, a short look back. What you say here is what changes
-        the days ahead.
+    <div className="calm-in">
+      <h1 className="mb-0 text-[26px] leading-[1.2]">Reviews</h1>
+      <p className="text-muted mt-2 mb-0 text-[14px]">
+        Every seven days, a short look back.
       </p>
 
-      <div className="mt-8 flex flex-col gap-3">
-        {weeks.map((week) => (
-          <Panel key={week.weekNumber} className="p-5">
-            <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <div className="flex flex-wrap items-baseline gap-2.5">
-                <h2 className="heading mb-0 text-[17px]">Week {week.weekNumber}</h2>
-                {week.review ? (
-                  <Tag variant="accent">Reviewed</Tag>
-                ) : week.unlocked ? (
-                  <Tag variant="outline">Ready</Tag>
-                ) : (
-                  <Tag variant="neutral">Opens on day {week.closingDay}</Tag>
-                )}
-              </div>
-
-              {week.unlocked ? (
-                <Button asChild variant="ghost" size="sm">
-                  <Link href={`/reviews/${week.weekNumber}`}>
-                    {week.review ? "View or edit" : "Start the review"} →
-                  </Link>
-                </Button>
-              ) : null}
-            </div>
-
+      <div className="mt-8 flex flex-col">
+        {weeks.map((week, index) => (
+          <div key={week.weekNumber}>
+            {index > 0 ? <CalmRule /> : null}
             {week.unlocked ? (
-              <p className="text-muted mt-2 mb-0 text-[13px]">
-                {week.summary.completionRate}% of this week&apos;s actions
-                completed
-                {week.summary.minimumDays > 0
-                  ? ` · ${week.summary.minimumDays} Minimum ${week.summary.minimumDays === 1 ? "Day" : "Days"}`
-                  : ""}
-                {week.review?.difficultyFeedback
-                  ? ` · felt ${FEEDBACK_LABEL[week.review.difficultyFeedback].toLowerCase()}`
-                  : ""}
-              </p>
+              <Link
+                href={`/reviews/${week.weekNumber}`}
+                className="flex items-baseline justify-between gap-3 py-[17px] text-inherit no-underline hover:no-underline"
+              >
+                <div className="min-w-0">
+                  <div className="text-[16px]">Week {week.weekNumber}</div>
+                  <div className="text-muted mt-0.5 text-[13px]">
+                    {week.summary.completionRate}% completed
+                    {week.review?.difficultyFeedback
+                      ? ` · felt ${FEEDBACK_LABEL[week.review.difficultyFeedback].toLowerCase()}`
+                      : ""}
+                  </div>
+                </div>
+                <span className="text-muted shrink-0 text-[13px]">
+                  {week.review ? "Reviewed" : "Ready"}
+                </span>
+              </Link>
             ) : (
-              <p className="text-muted mt-2 mb-0 text-[13px]">
-                Nothing to do yet. Keep going.
-              </p>
+              <div className="flex items-baseline justify-between gap-3 py-[17px]">
+                <div className="text-muted text-[16px]">
+                  Week {week.weekNumber}
+                </div>
+                <span className="text-muted shrink-0 text-[13px]">
+                  Opens on day {week.closingDay}
+                </span>
+              </div>
             )}
-          </Panel>
+          </div>
         ))}
+        <CalmRule />
       </div>
 
       {adjustments.length > 0 ? (
         <section className="mt-11" aria-labelledby="adjustments-heading">
-          <h2 id="adjustments-heading" className="text-[17px] sm:text-[20px]">
+          <h2
+            id="adjustments-heading"
+            className="text-muted mb-0 text-[12px] font-normal tracking-[0.08em] uppercase"
+          >
             Changes to your plan
           </h2>
-          <p className="text-muted mt-1 mb-4 text-[13px]">
-            Every adjustment, and why it was made. Days you have already
-            completed are never rewritten.
-          </p>
 
-          <Panel className="p-5">
+          <div className="mt-2 flex flex-col">
             {adjustments.map((adjustment, index) => (
               <div key={adjustment.id}>
-                {index > 0 ? <Rule className="my-4" /> : null}
-                <p className="heading mb-1 text-[14.5px]">{adjustment.summary}</p>
-                <p className="text-muted mb-0 text-[13px]">
-                  {adjustment.rationale}
-                </p>
-                <p className="mt-1.5 mb-0 text-[12px] text-[var(--color-neutral-600)]">
-                  Applied from day {adjustment.appliedFromDay}
-                  {adjustment.daysAffected > 0
-                    ? ` · ${adjustment.daysAffected} days updated`
-                    : " · no change to your actions"}
-                </p>
+                {index > 0 ? <CalmRule /> : null}
+                <div className="py-3.5">
+                  <p className="mb-0 text-[15px]">{adjustment.summary}</p>
+                  <p className="text-muted mt-1 mb-0 text-[13px] leading-normal">
+                    {adjustment.rationale} · from day {adjustment.appliedFromDay}
+                  </p>
+                </div>
               </div>
             ))}
-          </Panel>
+          </div>
         </section>
       ) : null}
     </div>

@@ -1,8 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardBody, CardMeta, CardTitle } from "@/components/ui/card";
+import { CalmRule } from "@/components/layout/calm-shell";
 import { Tag } from "@/components/ui/tag";
 import { PUBLIC_TEMPLATES, TEMPLATE_GROUPS } from "@/lib/plan/templates";
 
@@ -27,10 +26,10 @@ export default async function TemplatesPage({
       : PUBLIC_TEMPLATES.filter((template) => template.group === active);
 
   return (
-    <main className="pb-4 pt-6 sm:pt-10">
-      <h1 className="text-[28px] sm:text-[36px]">Templates</h1>
-      <p className="text-muted mt-2 text-[15px]">
-        Proven 30-day paths. Pick one and make it yours.
+    <main className="mx-auto max-w-[430px] pb-8 pt-6 sm:pt-10">
+      <h1 className="mb-0 text-[26px] leading-[1.2]">Templates</h1>
+      <p className="text-muted mt-2 mb-0 text-[14px]">
+        Proven 30-day paths. Make one yours.
       </p>
 
       <div className="mt-5 flex flex-wrap gap-2 sm:mt-6">
@@ -50,28 +49,26 @@ export default async function TemplatesPage({
         ))}
       </div>
 
-      <div className="mt-7 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
-        {templates.map((template) => (
-          <Card key={template.slug} className="p-5">
-            <CardTitle>{template.name}</CardTitle>
-            <CardBody>{template.description}</CardBody>
-            <CardMeta>
-              <span>30 days</span>
-              <span>·</span>
-              <span>{template.timeLabel}</span>
-            </CardMeta>
-            <Button asChild variant="ghost" className="mt-1 self-start">
-              <Link href={`/onboarding?template=${template.slug}`}>
-                Start this challenge →
-              </Link>
-            </Button>
-          </Card>
+      <div className="mt-8 flex flex-col">
+        {templates.map((template, index) => (
+          <div key={template.slug}>
+            {index > 0 ? <CalmRule /> : null}
+            <Link
+              href={`/onboarding?template=${template.slug}`}
+              className="flex items-center justify-between gap-3 py-[17px] text-[16px] text-inherit no-underline hover:no-underline"
+            >
+              <span className="min-w-0">{template.name}</span>
+              <span className="text-muted shrink-0 text-[13px]">
+                {template.timeLabel}
+              </span>
+            </Link>
+          </div>
         ))}
+        <CalmRule />
       </div>
 
       <p className="text-muted mt-8 mb-0 text-sm">
-        None of these quite right?{" "}
-        <Link href="/onboarding">Describe your own goal instead</Link>.
+        <Link href="/onboarding">Create my own goal</Link>
       </p>
     </main>
   );

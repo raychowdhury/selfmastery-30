@@ -2,7 +2,6 @@ import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 
 import { WeeklyReviewForm } from "@/components/reviews/weekly-review-form";
-import { Panel } from "@/components/ui/card";
 import { summariseWeek } from "@/lib/challenge/adjustment";
 import { reviewDays, weekForDay } from "@/lib/challenge/phases";
 import { requireUserId } from "@/lib/auth";
@@ -38,15 +37,14 @@ export default async function WeeklyReviewPage({
   const isFinalWeek = closingDay === challenge.lengthDays;
 
   return (
-    <div>
-      <h1 className="text-[27px] sm:text-[36px]">Week {weekNumber} complete.</h1>
-      <p className="text-muted mt-1.5 text-[13px] sm:text-[15px]">
-        Before moving forward, take two minutes to look back.
+    <div className="calm-in">
+      <h1 className="mb-0 text-[26px] leading-[1.2]">Week {weekNumber}.</h1>
+      <p className="text-muted mt-2 mb-0 text-[14px]">
+        Two minutes to look back.
       </p>
 
-      <Panel className="mt-7 p-5">
-        <div className="label-caps">This week</div>
-        <p className="heading mt-1.5 mb-0 text-[16px]">
+      <div className="mt-7">
+        <p className="mb-0 text-[16px]">
           {summary.completionRate}% of your actions completed
         </p>
         {summary.minimumDays > 0 ? (
@@ -62,7 +60,7 @@ export default async function WeeklyReviewPage({
             shortening.
           </p>
         ) : null}
-      </Panel>
+      </div>
 
       <WeeklyReviewForm
         challengeId={challenge.id}

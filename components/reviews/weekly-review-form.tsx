@@ -2,13 +2,11 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
 
 import { saveWeeklyReviewAction } from "@/actions/challenge";
+import { GlassBar } from "@/components/layout/calm-shell";
 import { Button } from "@/components/ui/button";
-import { Pill, PillRow } from "@/components/ui/choice";
 import { Field, Textarea } from "@/components/ui/input";
-import { Rule } from "@/components/ui/rule";
 
 const OBSTACLE_CHIPS = [
   "Time",
@@ -27,6 +25,34 @@ const DIFFICULTIES = [
 ] as const;
 
 type Feedback = (typeof DIFFICULTIES)[number]["value"];
+
+/** Rounded outline chip — selection shows as ink, not accent shouting. */
+function Chip({
+  label,
+  checked,
+  onClick,
+}: {
+  label: string;
+  checked: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={checked}
+      className="min-h-11 cursor-pointer rounded-[14px] border bg-transparent px-4 py-2 text-[14px] transition-colors"
+      style={{
+        borderColor: checked ? "var(--color-text)" : "var(--color-divider)",
+        color: checked
+          ? "var(--color-text)"
+          : "color-mix(in srgb, var(--color-text) 60%, transparent)",
+      }}
+    >
+      {label}
+    </button>
+  );
+}
 
 interface WeeklyReviewFormProps {
   challengeId: string;
@@ -98,28 +124,24 @@ export function WeeklyReviewForm({
         />
       </Field>
 
-      <fieldset className="mt-8 border-0 p-0">
-        <legend className="heading mb-3 text-[15px]">
-          What got in your way?
-        </legend>
-        <PillRow>
+      <fieldset className="mt-7 border-0 p-0">
+        <legend className="mb-3 text-[15px]">What got in your way?</legend>
+        <div className="flex flex-wrap gap-2">
           {OBSTACLE_CHIPS.map((chip) => (
-            <Pill
+            <Chip
               key={chip}
-              control="checkbox"
-              name="obstacles"
               label={chip}
               checked={obstacles.includes(chip)}
-              onChange={(event) =>
+              onClick={() =>
                 setObstacles((current) =>
-                  event.target.checked
-                    ? [...current, chip]
-                    : current.filter((item) => item !== chip)
+                  current.includes(chip)
+                    ? current.filter((item) => item !== chip)
+                    : [...current, chip]
                 )
               }
             />
           ))}
-        </PillRow>
+        </div>
       </fieldset>
 
       <Field
@@ -135,21 +157,20 @@ export function WeeklyReviewForm({
         />
       </Field>
 
-      <fieldset className="mt-8 border-0 p-0">
-        <legend className="heading mb-3 text-[15px]">
-          How did this week&apos;s difficulty feel?
+      <fieldset className="mt-7 border-0 p-0">
+        <legend className="mb-3 text-[15px]">
+          How did the difficulty feel?
         </legend>
-        <PillRow>
+        <div className="flex flex-wrap gap-2">
           {DIFFICULTIES.map((option) => (
-            <Pill
+            <Chip
               key={option.value}
-              name="difficulty"
               label={option.label}
               checked={difficulty === option.value}
-              onChange={() => setDifficulty(option.value)}
+              onClick={() => setDifficulty(option.value)}
             />
           ))}
-        </PillRow>
+        </div>
         <p className="text-muted mt-3 mb-0 text-[12.5px]">
           This is what adjusts next week&apos;s plan. Nothing already completed
           will change.
@@ -176,18 +197,15 @@ export function WeeklyReviewForm({
         </p>
       ) : null}
 
-      <Rule className="mt-9" />
-
-      <div className="mt-6 flex justify-end">
-        <Button onClick={submit} disabled={pending} className="max-sm:w-full">
+      <GlassBar>
+        <Button block onClick={submit} disabled={pending}>
           {pending
             ? "Adjusting your plan…"
             : isFinalWeek
               ? "Finish my 30 days"
-              : `Prepare Week ${weekNumber + 1}`}
-          {pending ? null : <ArrowRight className="size-3.5" />}
+              : `Prepare week ${weekNumber + 1}`}
         </Button>
-      </div>
+      </GlassBar>
     </div>
   );
 }

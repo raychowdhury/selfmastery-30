@@ -1,11 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
-import { TodayPreview } from "@/components/marketing/today-preview";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardTitle } from "@/components/ui/card";
 import { Rule } from "@/components/ui/rule";
-import { Tag } from "@/components/ui/tag";
 
 export const metadata: Metadata = {
   title: "SelfMastery — 30 Days. One Meaningful Change.",
@@ -52,35 +50,64 @@ const WHY = [
 export default function LandingPage() {
   return (
     <main>
-      {/* Hero — take A from the prototype: centred, with the product itself
-          overlapping the fold. */}
-      <section className="flex flex-col items-center px-1 pt-10 text-center sm:pt-[88px]">
-        <Tag variant="accent">30 days. One meaningful change.</Tag>
-
-        <h1 className="mt-5 max-w-[17ch] text-pretty text-[34px] sm:mt-[26px] sm:text-[58px]">
-          Become the person you keep saying you want to be.
-        </h1>
-
-        <p className="mt-3 max-w-[46ch] text-[15px] text-[var(--color-neutral-400)] sm:mt-5 sm:text-[17px]">
-          Turn one meaningful goal into small daily actions you can actually
-          follow.
-        </p>
-
-        <div className="mt-7 flex w-full flex-col items-stretch gap-3 sm:mt-9 sm:w-auto sm:flex-row sm:items-center">
-          <Button asChild size="lg">
-            <Link href="/sign-up">Start My 30 Days</Link>
-          </Button>
-          <Button asChild variant="secondary" size="lg">
-            <Link href="#how">See How It Works</Link>
-          </Button>
+      {/* Hero — the Calm landing: a giant outlined 30 under a soft accent
+          bloom, the record dots, and the promise. Left-aligned, quiet. */}
+      <section className="mx-auto max-w-[430px] pt-8 sm:pt-14">
+        <div className="relative">
+          <div
+            aria-hidden
+            className="absolute -top-8 -left-10 size-[260px] rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle, color-mix(in srgb, var(--color-accent) 22%, transparent), transparent 70%)",
+              animation: "calm-glow-anim 4s ease-in-out infinite alternate",
+            }}
+          />
+          <div
+            aria-hidden
+            className="heading relative text-[184px] leading-[0.9] tracking-[-0.05em] text-transparent"
+            style={{ WebkitTextStroke: "1.5px var(--color-accent)" }}
+          >
+            30
+          </div>
         </div>
 
-        <p className="mt-4 mb-0 text-[12.5px] text-[var(--color-neutral-600)]">
-          No complicated setup. Start in less than 2 minutes.
+        <div
+          aria-hidden
+          className="mt-9 grid w-[190px] grid-cols-10 gap-2.5"
+        >
+          {Array.from({ length: 30 }, (_, index) => (
+            <span
+              key={index}
+              className="block size-2.5 rounded-full"
+              style={{
+                background: index < 8 ? "var(--color-accent)" : "transparent",
+                border: `1px solid ${
+                  index < 8
+                    ? "var(--color-accent)"
+                    : "color-mix(in srgb, var(--color-text) 30%, transparent)"
+                }`,
+                animation: "calm-dot 0.4s ease both",
+                animationDelay: `${index * 35}ms`,
+              }}
+            />
+          ))}
+        </div>
+
+        <h1 className="mt-10 mb-0 text-pretty text-[28px] leading-[1.2]">
+          Become the person you keep saying you want to be.
+        </h1>
+        <p className="text-muted mt-3.5 mb-0 text-[15px] leading-normal">
+          One goal. Three small actions a day. Thirty days.
         </p>
 
-        <div className="relative z-[1] mt-10 w-full max-w-[560px] sm:mt-16">
-          <TodayPreview />
+        <div className="mt-9 flex flex-col gap-2.5">
+          <Button asChild block>
+            <Link href="/sign-up">Start my 30 days</Link>
+          </Button>
+          <Button asChild block variant="ghost">
+            <Link href="/sign-in">I already have an account</Link>
+          </Button>
         </div>
       </section>
 

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Archivo, Inter } from "next/font/google";
 
 import { themeInitScript } from "@/components/layout/theme-provider";
 
@@ -8,6 +8,13 @@ import "./globals.css";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+// The light theme is the Modernist system, which is set in Archivo.
+const archivo = Archivo({
+  subsets: ["latin"],
+  variable: "--font-archivo",
   display: "swap",
 });
 
@@ -50,8 +57,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fbfaf8" },
-    { media: "(prefers-color-scheme: dark)", color: "#111413" },
+    { media: "(prefers-color-scheme: light)", color: "#f3f2f2" },
+    { media: "(prefers-color-scheme: dark)", color: "#101120" },
   ],
 };
 
@@ -64,7 +71,7 @@ export default function RootLayout({
     // custom property whose var() is undefined at that scope computes to
     // guaranteed-invalid — silently dropping the entire font stack to the
     // system default.
-    <html lang="en" suppressHydrationWarning className={inter.variable}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${archivo.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
