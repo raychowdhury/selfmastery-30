@@ -1,48 +1,41 @@
 import SwiftUI
+import UIKit
 
-/// The landing experience.
+/// The Calm landing — the app's cold open, ported from the "SelfMastery 30
+/// Calm App" prototype (docs/design). One screen, one promise: the outlined
+/// 30 over its glow, a thirty-dot rail, the headline, and the two actions
+/// pinned to the bottom as full-width pills.
 ///
-/// Four pages rather than one screen: someone arriving cold needs to know what
-/// this is, how it works, that it fits their kind of goal, and what happens on a
-/// bad day. The web landing page answers all four before anyone signs up, and
-/// the app should not ask for an account with less.
-///
-/// The actions stay pinned below the pages, so signing up is never more than one
-/// tap away no matter how far someone reads.
+/// Colours come from the asset catalogue, so this is Nocturne in dark and
+/// Modernist in light with no per-appearance branching beyond the primary
+/// button, which is an outline in Nocturne and a solid block in Modernist —
+/// matching the prototype's two design systems.
 struct WelcomeView: View {
-    @State private var page = 0
     @State private var route: Route?
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var appeared = false
 
     enum Route: Hashable {
         case signUp, signIn
     }
 
-    private static let pageCount = 4
+    /// Eight of thirty filled, matching the prototype's "Day 8" state.
+    private let filledDays = 8
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                TabView(selection: $page) {
-                    HeroPage().tag(0)
-                    HowItWorksPage().tag(1)
-                    OrdinaryGoalsPage().tag(2)
-                    MinimumDayPage().tag(3)
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .animation(reduceMotion ? nil : .easeInOut, value: page)
+            ZStack(alignment: .bottom) {
+                background
 
-                PageDots(count: Self.pageCount, current: page)
-                    .padding(.bottom, Theme.Spacing.l)
+                content
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .padding(.horizontal, 28)
+                    .padding(.top, 24)
+                    .padding(.bottom, 150)
 
-                VStack(spacing: Theme.Spacing.m) {
-                    PrimaryButton(title: "Start My 30 Days") { route = .signUp }
-                    SecondaryButton(title: "I Already Have an Account") { route = .signIn }
-                }
-                .padding(.horizontal, Theme.Spacing.xl)
-                .padding(.bottom, Theme.Spacing.xl)
+                actionBar
             }
-            .background(Theme.Palette.background)
             .navigationDestination(item: $route) { route in
                 switch route {
                 case .signUp: AuthView(mode: .signUp)
@@ -50,206 +43,215 @@ struct WelcomeView: View {
                 }
             }
         }
-    }
-}
-
-// MARK: - Pages
-
-/// Page one. The promise, and nothing competing with it.
-private struct HeroPage: View {
-    var body: some View {
-        WelcomePage {
-            VStack(alignment: .leading, spacing: Theme.Spacing.l) {
-                ProgressRingMark()
-                    .frame(width: 60, height: 60)
-                    .accessibilityHidden(true)
-
-                Text("One meaningful change.")
-                    .font(Theme.Typography.display)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                Text("Give yourself 30 days. SelfMastery turns your goal into simple actions you can follow every day.")
-                    .font(.body)
-                    .foregroundStyle(Theme.Palette.secondaryText)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                Text("No complicated setup. Start in under two minutes.")
-                    .font(Theme.Typography.caption)
-                    .foregroundStyle(Theme.Palette.secondaryText)
-                    .padding(.top, Theme.Spacing.xs)
+        .onAppear {
+            guard !appeared else { return }
+            if reduceMotion {
+                appeared = true
+            } else {
+                withAnimation(.easeOut(duration: 0.4)) { appeared = true }
             }
         }
     }
-}
 
-private struct HowItWorksPage: View {
-    private let steps = [
-        ("01", "Choose what matters", "Tell us what you want to change or accomplish."),
-        ("02", "Get your 30-day path", "SelfMastery turns the goal into realistic daily actions."),
-        ("03", "Show up today", "Complete today's actions and gradually build consistency."),
-    ]
+    // MARK: - Pieces
 
-    var body: some View {
-        WelcomePage {
-            VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
-                Text("How it works")
-                    .font(Theme.Typography.title)
-                    .accessibilityAddTraits(.isHeader)
-
-                VStack(alignment: .leading, spacing: Theme.Spacing.l) {
-                    ForEach(steps, id: \.0) { step in
-                        HStack(alignment: .top, spacing: Theme.Spacing.m) {
-                            Text(step.0)
-                                .font(Theme.Typography.eyebrow)
-                                .foregroundStyle(Theme.Palette.accent)
-                                .frame(width: 24, alignment: .leading)
-                                .accessibilityHidden(true)
-
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(step.1).font(Theme.Typography.actionTitle)
-                                Text(step.2)
-                                    .font(Theme.Typography.body)
-                                    .foregroundStyle(Theme.Palette.secondaryText)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                        }
-                        .accessibilityElement(children: .combine)
-                    }
-                }
+    private var background: some View {
+        Theme.Palette.background
+            .overlay(alignment: .top) {
+                RadialGradient(
+                    colors: [Theme.Palette.accent.opacity(0.10), .clear],
+                    center: .top,
+                    startRadius: 0,
+                    endRadius: 440
+                )
+                .frame(height: 420)
+                .frame(maxWidth: .infinity)
+                .allowsHitTesting(false)
             }
-        }
+            .ignoresSafeArea()
     }
-}
 
-/// Page three exists to answer "is this for someone like me?". The breadth is
-/// the point — this is not a fitness app or a developer tool.
-private struct OrdinaryGoalsPage: View {
-    private let goals = [
-        "Get healthier", "Study consistently", "Find a better job",
-        "Take control of my money", "Reduce phone usage", "Finish my project",
-        "Spend time with family", "Build discipline", "Read every day",
-    ]
+    private var content: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("SelfMastery".uppercased())
+                .font(.system(size: 12, weight: .semibold))
+                .tracking(2.4)
 
-    var body: some View {
-        WelcomePage {
-            VStack(alignment: .leading, spacing: Theme.Spacing.l) {
-                Text("It works for ordinary goals")
-                    .font(Theme.Typography.title)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityAddTraits(.isHeader)
-
-                Text("You don't need a grand mission. You need a direction.")
-                    .font(.body)
-                    .foregroundStyle(Theme.Palette.secondaryText)
-
-                FlowLayout(spacing: Theme.Spacing.s) {
-                    ForEach(goals, id: \.self) { goal in
-                        Text(goal)
-                            .font(Theme.Typography.body)
-                            .padding(.horizontal, Theme.Spacing.m)
-                            .padding(.vertical, Theme.Spacing.s)
-                            .background(
-                                Theme.Palette.surface,
-                                in: .rect(cornerRadius: Theme.Radius.small)
-                            )
-                    }
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel("Example goals: \(goals.joined(separator: ", "))")
-
-                Text("Or describe something in your own words.")
-                    .font(Theme.Typography.caption)
-                    .foregroundStyle(Theme.Palette.secondaryText)
-            }
-        }
-    }
-}
-
-/// Page four is the differentiator, and the reason people stay past week one.
-private struct MinimumDayPage: View {
-    var body: some View {
-        WelcomePage {
-            VStack(alignment: .leading, spacing: Theme.Spacing.l) {
-                Text("Progress without perfection")
-                    .font(Theme.Typography.title)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityAddTraits(.isHeader)
-
-                Text("Some days fall apart. Instead of skipping, switch to a Minimum Day — the same commitment at its smallest size.")
-                    .font(.body)
-                    .foregroundStyle(Theme.Palette.secondaryText)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-                    ComparisonRow(label: "Original", value: "Walk for 30 minutes", muted: true)
-                    Divider()
-                    ComparisonRow(label: "Minimum", value: "Walk 5 minutes", muted: false)
-                }
-                .surfaceCard()
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel("On a hard day, a 30 minute walk becomes a 5 minute walk")
-
-                Text("It still counts. Reduce the requirement, not the commitment.")
-                    .font(Theme.Typography.body)
-                    .foregroundStyle(Theme.Palette.secondaryText)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                Text("No streak warnings. No guilt. A missed day is not a failure.")
-                    .font(Theme.Typography.caption)
-                    .foregroundStyle(Theme.Palette.secondaryText)
-            }
-        }
-    }
-}
-
-// MARK: - Shared
-
-/// Centres its content when it fits and scrolls when it does not.
-///
-/// Both halves matter: top-aligned copy leaves a hole on a tall phone, and a
-/// fixed centre clips at the largest accessibility text sizes on a small one.
-private struct WelcomePage<Content: View>: View {
-    @ViewBuilder let content: Content
-
-    var body: some View {
-        GeometryReader { proxy in
-            ScrollView {
-                content
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, Theme.Spacing.xl)
-                    .padding(.vertical, Theme.Spacing.xl)
-                    .frame(minHeight: proxy.size.height, alignment: .center)
-            }
-            .scrollBounceBehavior(.basedOnSize)
-        }
-    }
-}
-
-/// Page indicator drawn rather than using the built-in dots, which sit inside
-/// the paged TabView and would scroll with it.
-private struct PageDots: View {
-    let count: Int
-    let current: Int
-
-    var body: some View {
-        HStack(spacing: Theme.Spacing.s) {
-            ForEach(0..<count, id: \.self) { index in
-                Capsule()
+            ZStack(alignment: .topLeading) {
+                Circle()
                     .fill(
-                        index == current
-                            ? Theme.Palette.accent
-                            : Theme.Palette.separator
+                        RadialGradient(
+                            colors: [Theme.Palette.accent.opacity(0.22), .clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 130
+                        )
                     )
-                    .frame(width: index == current ? 20 : 6, height: 6)
-                    .animation(.snappy(duration: 0.2), value: current)
+                    .frame(width: 260, height: 260)
+                    .offset(x: -40, y: -30)
+                    .allowsHitTesting(false)
+
+                StrokeText(text: "30", fontSize: 168, strokeWidthPercent: 1.1)
+                    .fixedSize()
+            }
+            .padding(.top, 52)
+            .accessibilityHidden(true)
+
+            dotRail
+                .padding(.top, 34)
+                .accessibilityHidden(true)
+
+            Text("Become the person you keep saying you want to be.")
+                .font(.system(size: 28, weight: .semibold))
+                .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 40)
+
+            Text("One goal. Three small actions a day. Thirty days.")
+                .font(.system(size: 15))
+                .foregroundStyle(Theme.Palette.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 14)
+
+            Spacer(minLength: 0)
+        }
+        .opacity(appeared ? 1 : 0)
+        .offset(y: appeared ? 0 : 6)
+    }
+
+    private var dotRail: some View {
+        let columns = Array(
+            repeating: GridItem(.fixed(10), spacing: 10, alignment: .center),
+            count: 10
+        )
+        return LazyVGrid(columns: columns, spacing: 10) {
+            ForEach(0..<30, id: \.self) { index in
+                let filled = index < filledDays
+                Circle()
+                    .fill(filled ? Theme.Palette.accent : Color.clear)
+                    .overlay(
+                        Circle().strokeBorder(
+                            filled ? Theme.Palette.accent : Theme.Palette.text.opacity(0.3),
+                            lineWidth: 1
+                        )
+                    )
+                    .frame(width: 10, height: 10)
             }
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Page \(current + 1) of \(count)")
+        .frame(width: 190)
+    }
+
+    private var actionBar: some View {
+        VStack(spacing: 10) {
+            PillButton(
+                title: "Start my 30 days",
+                style: colorScheme == .light ? .filled : .outline
+            ) { route = .signUp }
+
+            PillButton(title: "I already have an account", style: .ghost) {
+                route = .signIn
+            }
+        }
+        .padding(.horizontal, 28)
+        .padding(.top, 16)
+        .padding(.bottom, 24)
+        .frame(maxWidth: .infinity)
+        .background(.ultraThinMaterial)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(Theme.Palette.text.opacity(0.08))
+                .frame(height: 1)
+        }
     }
 }
+
+// MARK: - Landing pill button
+
+/// The Calm app's button: a full-width pill. The primary follows the active
+/// design system — an accent outline in Nocturne, a solid accent block in
+/// Modernist — while the ghost is a hairline-bordered pill in both.
+private struct PillButton: View {
+    enum Style { case filled, outline, ghost }
+
+    let title: String
+    let style: Style
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 15, weight: .semibold))
+                .frame(maxWidth: .infinity, minHeight: 50)
+                .foregroundStyle(foreground)
+                .background(fill, in: Capsule())
+                .overlay(Capsule().strokeBorder(border, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var foreground: Color {
+        switch style {
+        case .filled: .white
+        case .outline: Theme.Palette.accent
+        case .ghost: Theme.Palette.text
+        }
+    }
+
+    private var fill: Color {
+        style == .filled ? Theme.Palette.accent : .clear
+    }
+
+    private var border: Color {
+        switch style {
+        case .filled: Theme.Palette.accent
+        case .outline: Theme.Palette.accent
+        case .ghost: Theme.Palette.text.opacity(0.22)
+        }
+    }
+}
+
+// MARK: - Outlined display numeral
+
+/// An outline-only numeral. SwiftUI's `Text` cannot stroke without filling, so
+/// this bridges a `UILabel` whose attributed string uses a positive
+/// `strokeWidth` (stroke, no fill) in the catalogue's BrandAccent — which
+/// carries its own light/dark values, so the stroke tracks the appearance.
+private struct StrokeText: UIViewRepresentable {
+    let text: String
+    let fontSize: CGFloat
+    /// Stroke width as a percentage of the font size (UIKit's convention).
+    let strokeWidthPercent: CGFloat
+
+    func makeUIView(context: Context) -> UILabel {
+        let label = UILabel()
+        label.backgroundColor = .clear
+        label.numberOfLines = 1
+        label.setContentHuggingPriority(.required, for: .horizontal)
+        label.setContentHuggingPriority(.required, for: .vertical)
+        label.setContentCompressionResistancePriority(.required, for: .horizontal)
+        label.setContentCompressionResistancePriority(.required, for: .vertical)
+        return label
+    }
+
+    func updateUIView(_ label: UILabel, context: Context) {
+        let accent = UIColor(named: "BrandAccent") ?? .systemPurple
+        label.attributedText = NSAttributedString(
+            string: text,
+            attributes: [
+                .font: UIFont.systemFont(ofSize: fontSize, weight: .heavy),
+                .foregroundColor: UIColor.clear,
+                .strokeColor: accent,
+                .strokeWidth: strokeWidthPercent,
+                .kern: -fontSize * 0.05,
+            ]
+        )
+    }
+}
+
+// MARK: - App mark
 
 /// The app mark, drawn rather than shipped as an image so it scales cleanly.
+/// Used here and by onboarding.
 struct ProgressRingMark: View {
     var body: some View {
         ZStack {
