@@ -318,7 +318,8 @@
     background: transparent;
     border: 1px solid transparent;
     padding: var(--space-2) calc(var(--space-3) * 1.2);
-    border-radius: var(--radius-md);
+    /* The Calm app's button is a pill in both design systems. */
+    border-radius: 999px;
     transition: background-color 140ms ease, color 140ms ease,
       border-color 140ms ease, transform 140ms ease;
   }
