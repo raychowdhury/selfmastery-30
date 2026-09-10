@@ -90,40 +90,74 @@
   --shadow-lg: 0 0 0 1px #9397ab, 0 16px 40px rgba(0, 0, 0, 0.65);
 }
 
-/* Light theme — the ramps are unchanged (they are hue-matched); only the
-   ground, the ink and the accent's working value swap, so every component
-   rule below stays single-source. */
+/* Light theme — Modernist. In the Calm prototype the light theme is not a
+   muted dark theme; it is a distinct design system: a warm ivory ground, ink
+   type set in Archivo, a single vermilion accent, square corners and solid
+   rules. Every value below is taken from the prototype's `.ds-modernist`
+   token block. The component rules further down stay single-source; only the
+   handful that Modernist treats differently (filled primary button, light
+   tag chips, filled segmented control) are re-stated under `.light` at the
+   end of the components layer. */
 :root:where(.light) {
   color-scheme: light;
 
-  --color-page: #f6f6fa;
-  --color-bg: #fbfbfd;
-  --color-surface: #ffffff;
-  --color-surface-2: #f1f1f7;
-  --color-text: #1a1b2a;
-  /* accent-700: the darkest step that still reads as the brand hue, and the
-     only one that clears AA as text on a light ground. */
-  --color-accent: #5d5294;
-  --color-accent-2: #6b6597;
+  --color-page: #eae9e9;
+  --color-bg: #f3f2f2;
+  --color-surface: #eae9e9;
+  --color-surface-2: #e0dede;
+  --color-text: #201e1d;
+  --color-accent: #ec3013;
+  --color-accent-2: #e15b47;
   --color-on-accent: #ffffff;
-  --color-accent-on-tint: #423a6a;
-  --color-accent-hover: #423a6a;
-  --color-divider: color-mix(in srgb, #1a1b2a 14%, transparent);
-  --color-hairline: rgba(26, 27, 42, 0.1);
+  /* Dark-red ink for text on a pale accent tint (selected pills, active nav). */
+  --color-accent-on-tint: #7c1405;
+  --color-accent-hover: #dd2b0f;
+  --color-divider: color-mix(in srgb, #201e1d 40%, transparent);
+  --color-hairline: color-mix(in srgb, #201e1d 12%, transparent);
 
-  --color-neutral-100: #292b31;
-  --color-neutral-200: #3f424d;
-  --color-neutral-300: #595d6c;
-  --color-neutral-400: #696d7f;
-  --color-neutral-500: #75798c;
-  --color-neutral-600: #9397ab;
-  --color-neutral-700: #b2b6ca;
-  --color-neutral-800: #dcdfec;
-  --color-neutral-900: #eceef7;
+  --color-neutral-100: #f8f4f4;
+  --color-neutral-200: #eae7e7;
+  --color-neutral-300: #d7d3d3;
+  --color-neutral-400: #bab6b6;
+  --color-neutral-500: #9b9797;
+  --color-neutral-600: #7d7979;
+  --color-neutral-700: #605d5d;
+  --color-neutral-800: #444141;
+  --color-neutral-900: #2d2b2b;
 
-  --shadow-sm: 0 0 0 1px rgba(26, 27, 42, 0.08);
-  --shadow-md: 0 0 0 1px rgba(26, 27, 42, 0.07), 0 6px 18px rgba(26, 27, 42, 0.08);
-  --shadow-lg: 0 0 0 1px rgba(26, 27, 42, 0.08), 0 16px 40px rgba(26, 27, 42, 0.14);
+  --color-accent-100: #fff2ef;
+  --color-accent-200: #ffe0d9;
+  --color-accent-300: #ffc4b8;
+  --color-accent-400: #ff9783;
+  --color-accent-500: #ff563c;
+  --color-accent-600: #dd2b0f;
+  --color-accent-700: #ae1800;
+  --color-accent-800: #7c1405;
+  --color-accent-900: #4d170e;
+
+  --color-accent-2-100: #fff2ef;
+  --color-accent-2-200: #ffe0da;
+  --color-accent-2-300: #ffc4b9;
+  --color-accent-2-400: #ff9784;
+  --color-accent-2-500: #ef6853;
+  --color-accent-2-600: #c94b39;
+  --color-accent-2-700: #9e3526;
+  --color-accent-2-800: #71261b;
+  --color-accent-2-900: #471d16;
+
+  /* Archivo, set heavy — the Modernist headline weight. */
+  --font-heading: var(--font-archivo), "Archivo", system-ui, sans-serif;
+  --font-heading-weight: 800;
+  --font-body: var(--font-archivo), "Archivo", system-ui, sans-serif;
+
+  /* Square corners are a defining Modernist trait. */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+
+  --shadow-sm: 0 1px 2px color-mix(in srgb, #2d2b2b 14%, transparent);
+  --shadow-md: 0 3px 10px color-mix(in srgb, #2d2b2b 16%, transparent);
+  --shadow-lg: 0 12px 32px color-mix(in srgb, #2d2b2b 22%, transparent);
 }
 
 @theme inline {
@@ -657,6 +691,51 @@
     --color-neutral-500: #9397ab;
 
     color: var(--color-text);
+  }
+
+  /* ---------------------------------------------------------------------------
+     Modernist (light) — the few component treatments the light design system
+     inverts from Nocturne. Everything else reads from tokens and adapts on its
+     own; these are the rules whose Nocturne form would look wrong on ivory.
+     --------------------------------------------------------------------------- */
+
+  /* Primary action is a solid vermilion block with white type, not an
+     outline — the one loud element on an otherwise quiet page. */
+  :where(.light) .btn-primary {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    border-color: var(--color-accent);
+  }
+  :where(.light) .btn-primary:hover {
+    background: var(--color-accent-600);
+    border-color: var(--color-accent-600);
+  }
+  :where(.light) .btn-primary:active {
+    background: var(--color-accent-700);
+    border-color: var(--color-accent-700);
+  }
+
+  /* Tag chips flip to pale-tint-on-dark-ink so they read on the light ground
+     rather than the dark fills Nocturne uses. */
+  :where(.light) .tag-accent {
+    background: var(--color-accent-100);
+    color: var(--color-accent-800);
+  }
+  :where(.light) .tag-accent-2 {
+    background: var(--color-accent-2-100);
+    color: var(--color-accent-2-800);
+  }
+  :where(.light) .tag-neutral {
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-800);
+  }
+
+  /* Segmented control: the selected option is a filled accent block, matching
+     the Modernist prototype's seg. */
+  :where(.light) .seg-opt:has(input:checked) {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    box-shadow: none;
   }
 }
 

@@ -1,13 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Archivo, Inter } from "next/font/google";
 
 import { themeInitScript } from "@/components/layout/theme-provider";
 
 import "./globals.css";
 
+// Inter carries the dark (Nocturne) theme; Archivo carries the light
+// (Modernist) theme — the two design systems the Calm prototype toggles
+// between. Both variables sit on <html> so the token sheet can point
+// --font-body / --font-heading at whichever the active theme selects.
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+const archivo = Archivo({
+  subsets: ["latin"],
+  weight: ["400", "600", "800"],
+  variable: "--font-archivo",
   display: "swap",
 });
 
@@ -50,7 +61,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fbfaf8" },
+    { media: "(prefers-color-scheme: light)", color: "#f3f2f2" },
     { media: "(prefers-color-scheme: dark)", color: "#111413" },
   ],
 };
@@ -64,7 +75,11 @@ export default function RootLayout({
     // custom property whose var() is undefined at that scope computes to
     // guaranteed-invalid — silently dropping the entire font stack to the
     // system default.
-    <html lang="en" suppressHydrationWarning className={inter.variable}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} ${archivo.variable}`}
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
