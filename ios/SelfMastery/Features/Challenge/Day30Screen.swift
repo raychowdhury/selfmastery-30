@@ -1,11 +1,13 @@
 import SwiftUI
 
-/// The end of the thirty days. The strongest moment in the app, and still
-/// evidence-led: the numbers are real, and the reflection is the person's own.
+/// The end of the thirty days, in the Calm design. The strongest moment in
+/// the app, and still evidence-led: the record grid is real data, and the
+/// reflection is the person's own.
 struct Day30Screen: View {
     @Environment(AppEnvironment.self) private var environment
     @State private var challenge: ChallengeDTO?
     @State private var stats: StatsDTO?
+    @State private var days: [CalendarDayDTO] = []
     @State private var reflection = ""
     @State private var biggestChange = ""
     @State private var nextGoal = ""
@@ -13,125 +15,141 @@ struct Day30Screen: View {
     @State private var didSave = false
     @State private var errorMessage: String?
 
+    private let dotColumns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 10)
+
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
+            VStack(alignment: .leading, spacing: 0) {
                 if let stats, let challenge {
-                    header(stats: stats, challenge: challenge)
-                    figures(stats: stats)
+                    header(challenge: challenge)
+                    record(stats: stats)
                     origin(challenge: challenge)
                     reflectionForm(challenge: challenge)
                 } else {
                     ProgressView().frame(maxWidth: .infinity)
                 }
             }
-            .padding(Theme.Spacing.l)
+            .padding(.horizontal, 28)
+            .padding(.top, Theme.Spacing.xl)
+            .padding(.bottom, Theme.Spacing.section)
         }
         .background(Theme.Palette.background)
-        .navigationTitle("Day 30")
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarVisibility(.hidden, for: .navigationBar)
         .task { await load() }
     }
 
     @ViewBuilder
-    private func header(stats: StatsDTO, challenge: ChallengeDTO) -> some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-            EyebrowLabel(text: "\(challenge.lengthDays) / \(challenge.lengthDays)")
-            Text("You finished what you started.")
-                .font(Theme.Typography.display)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityAddTraits(.isHeader)
-            Text("Thirty days ago you decided to \(challenge.goal.lowercasedFirst).")
-                .font(.body)
-                .foregroundStyle(Theme.Palette.secondaryText)
-                .fixedSize(horizontal: false, vertical: true)
-        }
+    private func header(challenge: ChallengeDTO) -> some View {
+        Text("\(challenge.lengthDays) OF \(challenge.lengthDays)")
+            .font(.system(size: 12))
+            .tracking(1.6)
+            .foregroundStyle(Theme.Palette.secondaryText)
+
+        Text("You finished what you started.")
+            .calmHeading(32)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, Theme.Spacing.l)
+            .accessibilityAddTraits(.isHeader)
+
+        Text("Thirty days ago you decided to \(challenge.goal.lowercasedFirst).")
+            .font(.system(size: 15))
+            .foregroundStyle(Theme.Palette.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, Theme.Spacing.m)
     }
 
     @ViewBuilder
-    private func figures(stats: StatsDTO) -> some View {
-        LazyVGrid(
-            columns: [GridItem(.flexible()), GridItem(.flexible())],
-            spacing: Theme.Spacing.m
-        ) {
-            MetricView(value: "\(stats.activeDays)", label: "Active days").surfaceCard()
-            MetricView(value: "\(stats.overallCompletion)%", label: "Overall consistency").surfaceCard()
-            MetricView(value: "\(stats.actionsCompleted)", label: "Actions completed").surfaceCard()
-            MetricView(value: "\(stats.perfectDays)", label: "Perfect days").surfaceCard()
-            MetricView(
-                value: "\(stats.longestStreak)",
-                label: stats.longestStreak == 1 ? "day longest streak" : "days longest streak"
-            )
-            .surfaceCard()
-            MetricView(value: "\(stats.minimumDays)", label: "Minimum Days").surfaceCard()
+    private func record(stats: StatsDTO) -> some View {
+        if !days.isEmpty {
+            LazyVGrid(columns: dotColumns, spacing: 10) {
+                ForEach(days) { day in
+                    let active = day.percent > 0 && day.dayState != .future
+                    Circle()
+                        .strokeBorder(
+                            active ? Theme.Palette.accent : Theme.Palette.text.opacity(0.3),
+                            lineWidth: 1
+                        )
+                        .background(Circle().fill(active ? Theme.Palette.accent : .clear))
+                        .frame(width: 10, height: 10)
+                }
+            }
+            .padding(.top, Theme.Spacing.section)
+            .accessibilityHidden(true)
         }
+
+        Text("\(stats.activeDays) active days · \(stats.longestStreak) in a row at most")
+            .font(.system(size: 13))
+            .foregroundStyle(Theme.Palette.secondaryText)
+            .padding(.top, Theme.Spacing.m)
+            .accessibilityLabel(
+                "\(stats.activeDays) active days, longest streak \(stats.longestStreak) days"
+            )
     }
 
     @ViewBuilder
     private func origin(challenge: ChallengeDTO) -> some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-            EyebrowLabel(text: "Where you started")
+        VStack(spacing: 0) {
             if let why = challenge.whyItMatters, !why.isEmpty {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Day 1 — why it mattered")
-                        .font(Theme.Typography.caption)
-                        .foregroundStyle(Theme.Palette.secondaryText)
-                    Text("“\(why)”").font(Theme.Typography.body)
-                }
+                SummaryRow(label: "Day 1", value: "\u{201C}\(why)\u{201D}")
             }
             if let success = challenge.successDefinition, !success.isEmpty {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Day 1 — what success looked like")
-                        .font(Theme.Typography.caption)
-                        .foregroundStyle(Theme.Palette.secondaryText)
-                    Text(success).font(Theme.Typography.body)
-                }
+                SummaryRow(label: "Day 30 was meant to look like", value: success)
             }
         }
-        .surfaceCard()
+        .padding(.top, Theme.Spacing.xxl)
     }
 
     @ViewBuilder
     private func reflectionForm(challenge: ChallengeDTO) -> some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.l) {
-            Text("What changed?")
-                .font(Theme.Typography.sectionTitle)
-                .accessibilityAddTraits(.isHeader)
+        Text("What changed?")
+            .font(.system(size: 15))
+            .padding(.top, Theme.Spacing.xxl)
 
-            LabelledField(label: "Over these 30 days") {
-                TextField(
-                    "The walks are just part of my day now.",
-                    text: $reflection,
-                    axis: .vertical
-                )
-                .lineLimit(3...6)
-            }
+        CalmTextArea(
+            placeholder: "The walks are just part of my day now.",
+            text: $reflection,
+            label: "What changed over these 30 days"
+        )
+        .padding(.top, Theme.Spacing.m)
 
-            LabelledField(label: "The single biggest difference") {
-                TextField("", text: $biggestChange, axis: .vertical).lineLimit(2...4)
-            }
+        Text("The single biggest difference")
+            .font(.system(size: 15))
+            .padding(.top, Theme.Spacing.xl)
 
-            LabelledField(label: "What comes next?", hint: "Optional.") {
-                TextField("", text: $nextGoal, axis: .vertical).lineLimit(2...3)
-            }
+        CalmTextArea(
+            placeholder: "",
+            text: $biggestChange,
+            label: "The single biggest difference"
+        )
+        .padding(.top, Theme.Spacing.m)
 
-            if let errorMessage {
-                Text(errorMessage).font(Theme.Typography.caption).foregroundStyle(.red)
-            }
+        Text("What comes next? Optional.")
+            .font(.system(size: 15))
+            .padding(.top, Theme.Spacing.xl)
 
-            PrimaryButton(
-                title: didSave ? "Start My Next 30 Days" : "Save My Reflection",
-                isLoading: isSaving
-            ) {
-                Task {
-                    if didSave {
-                        environment.didFinishAndArchiveChallenge()
-                    } else {
-                        await save(challenge: challenge)
-                    }
+        CalmTextArea(placeholder: "", text: $nextGoal, label: "What comes next")
+            .padding(.top, Theme.Spacing.m)
+
+        if let errorMessage {
+            Text(errorMessage)
+                .font(Theme.Typography.caption)
+                .foregroundStyle(.red)
+                .padding(.top, Theme.Spacing.s)
+        }
+
+        PrimaryButton(
+            title: didSave ? "Start my next 30 days" : "Save my reflection",
+            isLoading: isSaving
+        ) {
+            Task {
+                if didSave {
+                    environment.didFinishAndArchiveChallenge()
+                } else {
+                    await save(challenge: challenge)
                 }
             }
         }
+        .padding(.top, Theme.Spacing.xxl)
     }
 
     private func load() async {
@@ -139,8 +157,10 @@ struct Day30Screen: View {
         async let progressResult = try? environment.api.progress()
 
         let today = await todayResult
+        let progress = await progressResult
         challenge = today?.challenge
-        stats = (await progressResult)?.stats ?? today?.stats
+        stats = progress?.stats ?? today?.stats
+        days = progress?.days ?? []
     }
 
     private func save(challenge: ChallengeDTO) async {

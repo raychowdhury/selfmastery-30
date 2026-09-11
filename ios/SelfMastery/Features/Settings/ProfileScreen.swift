@@ -58,6 +58,14 @@ struct ProfileScreen: View {
                         }
 
                         NavigationLink {
+                            TemplatesScreen()
+                        } label: {
+                            SettingsRowLabel(label: "Templates", value: "Browse")
+                        }
+                        .buttonStyle(.plain)
+                        SettingsDivider()
+
+                        NavigationLink {
                             HistoryScreen()
                         } label: {
                             SettingsRowLabel(label: "Previous challenges", value: "Browse")

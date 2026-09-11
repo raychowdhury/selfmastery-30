@@ -36,8 +36,8 @@ struct WelcomeView: View {
                     .padding(.bottom, Theme.Spacing.l)
 
                 VStack(spacing: Theme.Spacing.m) {
-                    PrimaryButton(title: "Start My 30 Days") { route = .signUp }
-                    SecondaryButton(title: "I Already Have an Account") { route = .signIn }
+                    PrimaryButton(title: "Start my 30 days") { route = .signUp }
+                    SecondaryButton(title: "I already have an account") { route = .signIn }
                 }
                 .padding(.horizontal, Theme.Spacing.xl)
                 .padding(.bottom, Theme.Spacing.xl)
@@ -55,30 +55,101 @@ struct WelcomeView: View {
 
 // MARK: - Pages
 
-/// Page one. The promise, and nothing competing with it.
+/// Page one: the Calm landing. A wordmark, the stroked 30 with its glow, the
+/// month as thirty dots, and the promise — nothing competing with it.
 private struct HeroPage: View {
+    private let dotColumns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 10)
+
     var body: some View {
         WelcomePage {
-            VStack(alignment: .leading, spacing: Theme.Spacing.l) {
-                ProgressRingMark()
-                    .frame(width: 60, height: 60)
-                    .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 0) {
+                Text("SELFMASTERY")
+                    .calmHeading(12)
+                    .tracking(2.6)
 
-                Text("One meaningful change.")
-                    .font(Theme.Typography.display)
+                ZStack(alignment: .topLeading) {
+                    RadialGradient(
+                        colors: [Theme.Palette.accent.opacity(0.22), .clear],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 130
+                    )
+                    .frame(width: 260, height: 260)
+                    .offset(x: -40, y: -50)
+
+                    StrokedNumeral(text: "30", size: 150)
+                }
+                .frame(height: 160, alignment: .topLeading)
+                .padding(.top, Theme.Spacing.section)
+                .accessibilityHidden(true)
+
+                LazyVGrid(columns: dotColumns, spacing: 10) {
+                    ForEach(0..<30, id: \.self) { index in
+                        Circle()
+                            .strokeBorder(
+                                index < 8
+                                    ? Theme.Palette.accent
+                                    : Theme.Palette.text.opacity(0.3),
+                                lineWidth: 1
+                            )
+                            .background(
+                                Circle().fill(index < 8 ? Theme.Palette.accent : .clear)
+                            )
+                            .frame(width: 10, height: 10)
+                    }
+                }
+                .frame(width: 190)
+                .padding(.top, Theme.Spacing.xxl)
+                .accessibilityHidden(true)
+
+                Text("Become the person you keep saying you want to be.")
+                    .calmHeading(28)
                     .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, Theme.Spacing.section)
 
-                Text("Give yourself 30 days. SelfMastery turns your goal into simple actions you can follow every day.")
-                    .font(.body)
+                Text("One goal. Three small actions a day. Thirty days.")
+                    .font(.system(size: 15))
                     .foregroundStyle(Theme.Palette.secondaryText)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                Text("No complicated setup. Start in under two minutes.")
-                    .font(Theme.Typography.caption)
-                    .foregroundStyle(Theme.Palette.secondaryText)
-                    .padding(.top, Theme.Spacing.xs)
+                    .padding(.top, Theme.Spacing.m)
             }
         }
+    }
+}
+
+/// The landing's oversized numeral: transparent fill, accent stroke. Drawn by
+/// UIKit because SwiftUI's `Text` has no outline mode.
+private struct StrokedNumeral: UIViewRepresentable {
+    let text: String
+    let size: CGFloat
+
+    @Environment(\.colorScheme) private var scheme
+
+    func makeUIView(context: Context) -> UILabel {
+        let label = UILabel()
+        label.setContentHuggingPriority(.required, for: .horizontal)
+        label.setContentCompressionResistancePriority(.required, for: .horizontal)
+        apply(to: label)
+        return label
+    }
+
+    func updateUIView(_ label: UILabel, context: Context) {
+        apply(to: label)
+    }
+
+    private func apply(to label: UILabel) {
+        // strokeWidth is a percentage of the font size; ~1.5pt at this size.
+        label.attributedText = NSAttributedString(
+            string: text,
+            attributes: [
+                .font: UIFont.systemFont(
+                    ofSize: size,
+                    weight: scheme == .light ? .heavy : .medium
+                ),
+                .strokeColor: UIColor(named: "BrandAccent") ?? .systemPurple,
+                .strokeWidth: 1.2,
+                .kern: size * -0.05,
+            ]
+        )
     }
 }
 

@@ -129,6 +129,10 @@ struct SelfMasteryAPI: Sendable {
         try await client.send(Endpoint(path: "onboarding-options", requiresAuth: false))
     }
 
+    func templates() async throws -> TemplatesResponse {
+        try await client.send(Endpoint(path: "templates", requiresAuth: false))
+    }
+
     // MARK: Challenge
 
     func createChallenge(_ request: OnboardingRequest) async throws -> ChallengeResponse {

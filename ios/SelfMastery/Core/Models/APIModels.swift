@@ -277,6 +277,26 @@ struct OnboardingOptionsResponse: Codable, Sendable {
     let strategies: [StrategyDTO]
 }
 
+// MARK: - Templates
+
+struct TemplateDTO: Codable, Sendable, Identifiable, Hashable {
+    let slug: String
+    let name: String
+    let description: String
+    let category: String
+    let group: String
+    let timeLabel: String
+    let suggestedMinutes: Int
+    let suggestedDifficulty: String
+    let goal: String
+
+    var id: String { slug }
+}
+
+struct TemplatesResponse: Codable, Sendable {
+    let templates: [TemplateDTO]
+}
+
 // MARK: - History
 
 struct HistoryEntryDTO: Codable, Sendable, Identifiable, Hashable {

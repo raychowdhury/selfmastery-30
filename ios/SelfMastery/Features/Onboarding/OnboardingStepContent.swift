@@ -20,7 +20,7 @@ struct OnboardingStepContent: View {
     // MARK: Steps
 
     private var categoryStep: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.l) {
+        VStack(alignment: .leading, spacing: 0) {
             ForEach(model.options?.categories ?? []) { category in
                 SelectableRow(
                     title: category.label,
@@ -40,6 +40,7 @@ struct OnboardingStepContent: View {
                         if !new.isEmpty { model.category = "" }
                     }
             }
+            .padding(.top, Theme.Spacing.xl)
         }
     }
 
@@ -93,7 +94,7 @@ struct OnboardingStepContent: View {
     }
 
     private var timeStep: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.l) {
+        VStack(alignment: .leading, spacing: 0) {
             ForEach(model.options?.timeOptions ?? [], id: \.self) { minutes in
                 SelectableRow(
                     title: minutes.formattedMinutes,
@@ -114,11 +115,12 @@ struct OnboardingStepContent: View {
                         }
                     }
             }
+            .padding(.top, Theme.Spacing.xl)
         }
     }
 
     private var obstaclesStep: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.s) {
+        VStack(alignment: .leading, spacing: 0) {
             ForEach(model.options?.obstacles ?? []) { obstacle in
                 SelectableRow(
                     title: obstacle.label,
@@ -137,7 +139,7 @@ struct OnboardingStepContent: View {
     }
 
     private var preferredTimeStep: some View {
-        VStack(spacing: Theme.Spacing.s) {
+        VStack(spacing: 0) {
             ForEach(model.options?.preferredTimes ?? []) { option in
                 SelectableRow(
                     title: option.label,
@@ -151,7 +153,7 @@ struct OnboardingStepContent: View {
     }
 
     private var difficultyStep: some View {
-        VStack(spacing: Theme.Spacing.s) {
+        VStack(spacing: 0) {
             ForEach(model.options?.difficulties ?? []) { option in
                 SelectableRow(
                     title: option.label,
@@ -193,8 +195,9 @@ struct OnboardingStepContent: View {
     }
 }
 
-/// A tappable option row. Selection is shown by a filled control *and* the
-/// accessibility trait, never by colour alone.
+/// A tappable option row, at the Calm design's density: no card, just text
+/// over an accent hairline. Selection is shown by full-strength text *and* a
+/// check *and* the accessibility trait, never by colour alone.
 struct SelectableRow: View {
     let title: String
     var subtitle: String?
@@ -205,55 +208,44 @@ struct SelectableRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(alignment: .top, spacing: Theme.Spacing.m) {
-                if let systemImage {
-                    Image(systemName: systemImage)
-                        .font(.system(size: 17))
-                        .foregroundStyle(isSelected ? Theme.Palette.accent : Theme.Palette.secondaryText)
-                        .frame(width: 24)
-                        .accessibilityHidden(true)
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(Theme.Typography.actionTitle)
-                        .foregroundStyle(Theme.Palette.text)
-                        .multilineTextAlignment(.leading)
-                    if let subtitle {
-                        Text(subtitle)
-                            .font(Theme.Typography.caption)
-                            .foregroundStyle(Theme.Palette.secondaryText)
+            VStack(spacing: 0) {
+                HStack(alignment: .center, spacing: Theme.Spacing.m) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(title)
+                            .font(.system(size: 16))
+                            .foregroundStyle(
+                                isSelected
+                                    ? Theme.Palette.text
+                                    : Theme.Palette.text.opacity(0.6)
+                            )
                             .multilineTextAlignment(.leading)
-                            .fixedSize(horizontal: false, vertical: true)
+                        if let subtitle {
+                            Text(subtitle)
+                                .font(.system(size: 13))
+                                .foregroundStyle(Theme.Palette.secondaryText)
+                                .multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+
+                    Spacer(minLength: Theme.Spacing.s)
+
+                    if isSelected {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(Theme.Palette.accent)
+                            .accessibilityHidden(true)
                     }
                 }
+                .padding(.vertical, 15)
 
-                Spacer(minLength: Theme.Spacing.s)
-
-                Image(systemName: selectionSymbol)
-                    .font(.system(size: 20))
-                    .foregroundStyle(isSelected ? Theme.Palette.accent : Theme.Palette.separator)
-                    .accessibilityHidden(true)
+                Theme.Palette.accent.opacity(0.22).frame(height: 1)
             }
-            .padding(Theme.Spacing.l)
-            .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
-            .background(Theme.Palette.surface, in: .rect(cornerRadius: Theme.Radius.medium))
-            .overlay {
-                RoundedRectangle(cornerRadius: Theme.Radius.medium)
-                    .strokeBorder(isSelected ? Theme.Palette.accent : .clear, lineWidth: 1.5)
-            }
+            .contentShape(.rect)
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
         .accessibilityLabel(subtitle.map { "\(title). \($0)" } ?? title)
-    }
-
-    private var selectionSymbol: String {
-        if isMultiSelect {
-            isSelected ? "checkmark.square.fill" : "square"
-        } else {
-            isSelected ? "checkmark.circle.fill" : "circle"
-        }
     }
 }
 
