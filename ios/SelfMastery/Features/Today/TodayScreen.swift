@@ -1,10 +1,13 @@
 import SwiftUI
 
-/// The screen the app exists for. Everything else is secondary.
+/// The screen the app exists for, in the Calm design: a date, the day number,
+/// the goal in one line, the actions, and nothing else competing. The fixed
+/// bar at the bottom holds the day's two verbs — reduce, and finish.
 struct TodayScreen: View {
     @Environment(AppEnvironment.self) private var environment
     @State private var model: TodayModel?
     @State private var showingMinimumDay = false
+    @State private var showingFinish = false
     @State private var showingReview = false
     @State private var completedDay: Int?
 
@@ -34,8 +37,7 @@ struct TodayScreen: View {
                 }
             }
             .background(Theme.Palette.background)
-            .navigationTitle("Today")
-            .navigationBarTitleDisplayMode(.inline)
+            .toolbarVisibility(.hidden, for: .navigationBar)
         }
         .task {
             if model == nil {
@@ -48,84 +50,93 @@ struct TodayScreen: View {
     @ViewBuilder
     private func content(model: TodayModel) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
-                header(model: model)
-
-                // Reachable *on* the final day, not only after it. Day 30 is
-                // the day you finish; making someone wait until day 31 to see
-                // how it went would be an odd way to end a 30-day challenge.
-                if model.hasReachedFinalDay {
-                    NavigationLink {
-                        Day30Screen()
-                    } label: {
-                        BannerRow(
-                            text: model.isOver
-                                ? "Your 30 days are complete. There's one last thing worth doing."
-                                : "You've reached Day 30. There's one last thing worth doing.",
-                            actionLabel: "See how it went"
-                        )
-                    }
-                    .buttonStyle(.plain)
-                } else if let week = model.reviewDue {
-                    Button { showingReview = true } label: {
-                        BannerRow(
-                            text: "Week \(week) is done. Two minutes of looking back shapes next week.",
-                            actionLabel: "Start the review"
-                        )
-                    }
-                    .buttonStyle(.plain)
+            VStack(alignment: .leading, spacing: 0) {
+                // The thin 30-day rail stays at the very top — how far into
+                // the month you are is the first thing the screen answers.
+                GeometryReader { proxy in
+                    let fraction =
+                        Double(model.dayNumber)
+                        / Double(max(model.challenge?.lengthDays ?? 30, 1))
+                    Capsule()
+                        .fill(Theme.Palette.separator.opacity(0.45))
+                        .overlay(alignment: .leading) {
+                            Capsule()
+                                .fill(Theme.Palette.accent)
+                                .frame(width: proxy.size.width * fraction)
+                        }
                 }
+                .frame(height: 3)
+                .accessibilityLabel(
+                    "Day \(model.dayNumber) of \(model.challenge?.lengthDays ?? 30)"
+                )
+
+                Text(dateLine(model: model))
+                    .font(.system(size: 13))
+                    .foregroundStyle(Theme.Palette.secondaryText)
+                    .padding(.top, Theme.Spacing.xl)
+
+                Text("Day \(model.dayNumber) of \(model.challenge?.lengthDays ?? 30)")
+                    .calmHeading(30)
+                    .padding(.top, 6)
+                    .accessibilityAddTraits(.isHeader)
 
                 if let challenge = model.challenge {
                     GoalReminder(challenge: challenge)
+                        .padding(.top, Theme.Spacing.m)
                 }
 
-                actionsSection(model: model)
+                quietLink(model: model)
 
-                if let priority = model.topPriority {
-                    VStack(alignment: .leading, spacing: Theme.Spacing.s) {
-                        EyebrowLabel(text: "Top priority")
-                        Text(priority.text).font(Theme.Typography.actionTitle)
-                    }
-                    .surfaceCard()
-                }
+                Text("Keep it simple. Just show up.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.Palette.secondaryText)
+                    .padding(.top, Theme.Spacing.xxl)
 
-                DailyProgressCard(
-                    completion: model.completion,
-                    remainingLabel: model.remainingLabel
-                )
-
-                minimumDayRow(model: model)
-
-                PrioritiesSection(
-                    priorities: model.day?.priorities ?? []
-                ) { updated in
-                    Task { await model.savePriorities(updated) }
-                }
-
-                Divider()
-
-                FinishDaySection(
-                    initialFeeling: model.day?.reflection?.dayFeeling,
-                    initialNote: model.day?.reflection?.note ?? ""
-                ) { feeling, note in
-                    if await model.finishDay(feeling: feeling, note: note) {
-                        completedDay = model.dayNumber
+                VStack(spacing: 0) {
+                    ForEach(model.actions) { action in
+                        ActionRow(
+                            action: action,
+                            isSaving: model.inFlight.contains(action.id)
+                        ) {
+                            Task { await model.toggle(action) }
+                        }
                     }
                 }
+                .padding(.top, Theme.Spacing.s)
+
+                Text(progressLabel(model: model))
+                    .font(.system(size: 13.5))
+                    .foregroundStyle(Theme.Palette.secondaryText)
+                    .padding(.top, Theme.Spacing.l)
 
                 if let error = model.actionError {
                     Text(error)
                         .font(Theme.Typography.caption)
                         .foregroundStyle(.red)
+                        .padding(.top, Theme.Spacing.s)
                 }
             }
-            .padding(Theme.Spacing.l)
+            .padding(.horizontal, 28)
+            .padding(.top, Theme.Spacing.l)
+            .padding(.bottom, Theme.Spacing.section)
         }
         .refreshable { await model.load(showSpinner: false) }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            todayBar(model: model)
+        }
         .sheet(isPresented: $showingMinimumDay) {
-            MinimumDaySheet(preview: model.minimumPreview) {
+            MinimumDaySheet(reductions: model.reductions) {
                 Task { await model.setMinimumDay(true) }
+            }
+        }
+        .sheet(isPresented: $showingFinish) {
+            FinishDaySheet(
+                initialFeeling: model.day?.reflection?.dayFeeling,
+                initialNote: model.day?.reflection?.note ?? ""
+            ) { feeling, note in
+                if await model.finishDay(feeling: feeling, note: note) {
+                    completedDay = model.dayNumber
+                }
             }
         }
         .sheet(isPresented: $showingReview) {
@@ -145,119 +156,89 @@ struct TodayScreen: View {
         }
     }
 
+    /// The glass action bar fixed under the content: the quiet Minimum Day
+    /// affordance and the one filled verb of the screen.
+    @ViewBuilder
+    private func todayBar(model: TodayModel) -> some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.s) {
+            if model.isMinimumDay {
+                UnderlineButton(title: "Restore the full plan") {
+                    Task { await model.setMinimumDay(false) }
+                }
+            } else {
+                UnderlineButton(title: "Having a difficult day? Use a minimum day") {
+                    showingMinimumDay = true
+                }
+            }
+            PrimaryButton(title: "Finish day") { showingFinish = true }
+        }
+        .padding(.horizontal, 28)
+        .padding(.top, Theme.Spacing.m)
+        .padding(.bottom, Theme.Spacing.s)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            ZStack {
+                Rectangle().fill(.ultraThinMaterial)
+                Theme.Palette.background.opacity(0.62)
+            }
+            .overlay(alignment: .top) {
+                Theme.Palette.text.opacity(0.08).frame(height: 1)
+            }
+            .ignoresSafeArea(edges: .bottom)
+        }
+    }
+
+    @ViewBuilder
+    private func quietLink(model: TodayModel) -> some View {
+        // Reachable *on* the final day, not only after it — Day 30 is the day
+        // you finish. Both states are quiet text links, per the Calm design.
+        if model.hasReachedFinalDay {
+            NavigationLink {
+                Day30Screen()
+            } label: {
+                Text(
+                    model.isOver
+                        ? "Your 30 days are complete. See how it went."
+                        : "You've reached Day 30. See how it went."
+                )
+                .font(.system(size: 14))
+                .foregroundStyle(Theme.Palette.accent)
+                .frame(minHeight: 44, alignment: .leading)
+            }
+            .buttonStyle(.plain)
+            .padding(.top, Theme.Spacing.s)
+        } else if let week = model.reviewDue {
+            Button { showingReview = true } label: {
+                Text("Week \(week) is done. Start the review.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.Palette.accent)
+                    .frame(minHeight: 44, alignment: .leading)
+            }
+            .buttonStyle(.plain)
+            .padding(.top, Theme.Spacing.s)
+        }
+    }
+
+    private func dateLine(model: TodayModel) -> String {
+        model.isMinimumDay ? "\(model.dateLabel) · Minimum day" : model.dateLabel
+    }
+
+    private func progressLabel(model: TodayModel) -> String {
+        let remaining = model.completion.required - model.completion.completed
+        switch remaining {
+        case ..<1: return "You showed up today."
+        case 1: return "One more to go."
+        default: return "\(remaining) left for today."
+        }
+    }
+
     private func completedMinutes(model: TodayModel) -> Int {
         model.actions.filter(\.completed).reduce(0) { $0 + $1.estimatedMinutes }
     }
-
-    @ViewBuilder
-    private func header(model: TodayModel) -> some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.s) {
-            // The bar leads the header: how far into the 30 days you are is
-            // the first thing the screen answers.
-            ProgressView(
-                value: Double(model.dayNumber),
-                total: Double(model.challenge?.lengthDays ?? 30)
-            )
-            .tint(Theme.Palette.accent)
-            .padding(.bottom, Theme.Spacing.xs)
-            .accessibilityLabel("Day \(model.dayNumber) of \(model.challenge?.lengthDays ?? 30)")
-
-            Text(model.dateLabel)
-                .font(Theme.Typography.caption)
-                .foregroundStyle(Theme.Palette.secondaryText)
-
-            HStack(alignment: .firstTextBaseline, spacing: Theme.Spacing.m) {
-                Text("Day \(model.dayNumber) of \(model.challenge?.lengthDays ?? 30)")
-                    .font(Theme.Typography.display)
-                    .accessibilityAddTraits(.isHeader)
-
-                if !model.phaseLabel.isEmpty {
-                    Chip(text: model.phaseLabel, tint: Theme.Palette.accent)
-                }
-            }
-
-            if model.isMinimumDay {
-                Chip(text: "Minimum Day", tint: Theme.Palette.secondaryText)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func actionsSection(model: TodayModel) -> some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-            // The nav bar already says "Today"; repeating it as a section
-            // heading was one of the floating words. The quiet line stays.
-            Text("Keep it simple. Just show up.")
-                .font(Theme.Typography.body)
-                .foregroundStyle(Theme.Palette.secondaryText)
-
-            VStack(spacing: 0) {
-                ForEach(model.actions) { action in
-                    ActionRow(
-                        action: action,
-                        isSaving: model.inFlight.contains(action.id)
-                    ) {
-                        Task { await model.toggle(action) }
-                    }
-                    if action.id != model.actions.last?.id {
-                        Divider().padding(.leading, Theme.Spacing.xxl)
-                    }
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func minimumDayRow(model: TodayModel) -> some View {
-        if model.isMinimumDay {
-            HStack(spacing: Theme.Spacing.s) {
-                Text("Today is a Minimum Day — the smallest version still counts.")
-                    .font(Theme.Typography.caption)
-                    .foregroundStyle(Theme.Palette.secondaryText)
-                Button("Restore full plan") {
-                    Task { await model.setMinimumDay(false) }
-                }
-                .font(Theme.Typography.caption)
-            }
-        } else {
-            HStack(spacing: Theme.Spacing.s) {
-                Text("Having a difficult day?")
-                    .font(Theme.Typography.caption)
-                    .foregroundStyle(Theme.Palette.secondaryText)
-                Button("Use Minimum Day") { showingMinimumDay = true }
-                    .font(Theme.Typography.caption)
-            }
-        }
-    }
 }
 
-struct BannerRow: View {
-    let text: String
-    let actionLabel: String
-
-    var body: some View {
-        HStack(spacing: Theme.Spacing.m) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(text)
-                    .font(Theme.Typography.body)
-                    .foregroundStyle(Theme.Palette.text)
-                    .multilineTextAlignment(.leading)
-                Text(actionLabel)
-                    .font(Theme.Typography.caption)
-                    .foregroundStyle(Theme.Palette.accent)
-            }
-            Spacer()
-            Image(systemName: "chevron.right")
-                .font(.footnote)
-                .foregroundStyle(Theme.Palette.secondaryText)
-        }
-        .surfaceCard()
-    }
-}
-
-/// One line, per the prototype's mobile take: an accent dot, the goal, and
-/// "View". The full card belongs to wide layouts; on a phone it pushed
-/// today's actions below the fold, and the goal is a reminder, not the task.
+/// One line: an accent dot, the goal, and "View". The goal is a reminder here,
+/// not the task.
 struct GoalReminder: View {
     let challenge: ChallengeDTO
 
@@ -270,50 +251,20 @@ struct GoalReminder: View {
                     .fill(Theme.Palette.accent)
                     .frame(width: 5, height: 5)
                 Text(challenge.goal)
-                    .font(Theme.Typography.body)
+                    .font(.system(size: 14))
                     .foregroundStyle(Theme.Palette.text)
                     .lineLimit(1)
                 Spacer(minLength: Theme.Spacing.s)
                 Text("View")
-                    .font(Theme.Typography.caption)
+                    .font(.system(size: 13))
                     .foregroundStyle(Theme.Palette.accent)
             }
+            .frame(minHeight: 44)
+            .contentShape(.rect)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Your 30-day goal: \(challenge.goal)")
         .accessibilityHint("Opens your goal")
-    }
-}
-
-struct DailyProgressCard: View {
-    let completion: CompletionDTO
-    let remainingLabel: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.s) {
-            HStack(alignment: .firstTextBaseline) {
-                EyebrowLabel(text: "Today's progress", color: Theme.Palette.secondaryText)
-                Spacer()
-                Text(
-                    completion.percent == 100
-                        ? "Complete"
-                        : "\(completion.completed) of \(completion.required)"
-                )
-                .font(Theme.Typography.actionTitle)
-            }
-
-            ProgressView(value: Double(completion.percent), total: 100)
-                .tint(Theme.Palette.accent)
-
-            Text(completion.percent == 100 ? "You showed up." : remainingLabel)
-                .font(Theme.Typography.caption)
-                .foregroundStyle(Theme.Palette.secondaryText)
-        }
-        .surfaceCard()
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(
-            "Today's progress: \(completion.completed) of \(completion.required) actions complete"
-        )
     }
 }
 

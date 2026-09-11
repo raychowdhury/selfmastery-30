@@ -70,6 +70,47 @@ extension View {
     }
 }
 
+// MARK: - Calm chrome
+
+/// Calm-design heading type. The two themes are two personalities on one
+/// layout: Modernist light sets headings heavy (Archivo 800 on the web),
+/// Nocturne dark keeps them at a quiet medium (Inter 500).
+struct CalmHeading: ViewModifier {
+    let size: CGFloat
+    @Environment(\.colorScheme) private var scheme
+
+    func body(content: Content) -> some View {
+        content
+            .font(.system(size: size, weight: scheme == .light ? .heavy : .medium))
+            .tracking(size * -0.015)
+    }
+}
+
+extension View {
+    func calmHeading(_ size: CGFloat) -> some View {
+        modifier(CalmHeading(size: size))
+    }
+}
+
+/// The accent-tinted rule that separates Calm list rows: a hairline fading to
+/// transparent at both ends.
+struct CalmRule: View {
+    var body: some View {
+        LinearGradient(
+            stops: [
+                .init(color: .clear, location: 0),
+                .init(color: Theme.Palette.accent.opacity(0.38), location: 0.14),
+                .init(color: Theme.Palette.accent.opacity(0.38), location: 0.86),
+                .init(color: .clear, location: 1),
+            ],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+        .frame(height: 1)
+        .accessibilityHidden(true)
+    }
+}
+
 /// The small uppercase label above a section.
 struct EyebrowLabel: View {
     let text: String

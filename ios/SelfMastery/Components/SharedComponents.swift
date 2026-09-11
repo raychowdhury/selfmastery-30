@@ -1,29 +1,45 @@
 import SwiftUI
 
-/// The app's primary button. One definition, so weight and shape never drift.
+/// The app's primary button, in the Calm chrome: always a pill. The two themes
+/// treat it differently on purpose — Nocturne dark keeps the primary as an
+/// accent *outline* (that restraint is what keeps the interface calm), while
+/// Modernist light fills it solid with page-coloured text.
 struct PrimaryButton: View {
     let title: String
     var isLoading = false
     var isEnabled = true
     let action: () -> Void
 
+    @Environment(\.colorScheme) private var scheme
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: Theme.Spacing.s) {
                 if isLoading {
-                    ProgressView().controlSize(.small).tint(.white)
+                    ProgressView().controlSize(.small)
+                        .tint(scheme == .light ? Theme.Palette.background : Theme.Palette.accent)
                 }
                 Text(isLoading ? "One moment…" : title)
-                    .font(Theme.Typography.actionTitle)
+                    .font(.system(size: 15, weight: .medium))
             }
             .frame(maxWidth: .infinity, minHeight: 50)
+            .foregroundStyle(scheme == .light ? Theme.Palette.background : Theme.Palette.accent)
+            .background {
+                if scheme == .light {
+                    Capsule().fill(Theme.Palette.accent)
+                } else {
+                    Capsule().strokeBorder(Theme.Palette.accent, lineWidth: 1)
+                }
+            }
+            .contentShape(.capsule)
+            .opacity(!isEnabled || isLoading ? 0.45 : 1)
         }
-        .buttonStyle(.borderedProminent)
-        .buttonBorderShape(.roundedRectangle(radius: Theme.Radius.medium))
+        .buttonStyle(.plain)
         .disabled(!isEnabled || isLoading)
     }
 }
 
+/// Calm ghost: a quiet neutral outline in the text colour, not the accent.
 struct SecondaryButton: View {
     let title: String
     let action: () -> Void
@@ -31,11 +47,35 @@ struct SecondaryButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(Theme.Typography.actionTitle)
+                .font(.system(size: 15, weight: .medium))
                 .frame(maxWidth: .infinity, minHeight: 50)
+                .foregroundStyle(Theme.Palette.text)
+                .background {
+                    Capsule().strokeBorder(Theme.Palette.text.opacity(0.22), lineWidth: 1)
+                }
+                .contentShape(.capsule)
         }
-        .buttonStyle(.bordered)
-        .buttonBorderShape(.roundedRectangle(radius: Theme.Radius.medium))
+        .buttonStyle(.plain)
+    }
+}
+
+/// Quiet underlined text button — the Calm bar's secondary affordance.
+struct UnderlineButton: View {
+    let title: String
+    var isDisabled = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 14))
+                .foregroundStyle(Theme.Palette.text)
+                .underline(color: Theme.Palette.text.opacity(0.35))
+                .frame(minHeight: 44, alignment: .leading)
+                .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .disabled(isDisabled)
     }
 }
 
@@ -136,6 +176,70 @@ struct MetricView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(value), \(label)")
+    }
+}
+
+/// An original-versus-minimum pair, used by the Welcome tour's Minimum Day page.
+struct ComparisonRow: View {
+    let label: String
+    let value: String
+    let muted: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label.uppercased())
+                .font(Theme.Typography.eyebrow)
+                .foregroundStyle(muted ? Theme.Palette.secondaryText : Theme.Palette.accent)
+            Text(value)
+                .font(Theme.Typography.actionTitle)
+                .strikethrough(muted, color: Theme.Palette.secondaryText)
+                .foregroundStyle(muted ? Theme.Palette.secondaryText : Theme.Palette.text)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// Wraps items onto as many lines as they need.
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? .infinity
+        var x: CGFloat = 0, y: CGFloat = 0, rowHeight: CGFloat = 0
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x + size.width > width, x > 0 {
+                x = 0
+                y += rowHeight + spacing
+                rowHeight = 0
+            }
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
+        return CGSize(width: width, height: y + rowHeight)
+    }
+
+    func placeSubviews(
+        in bounds: CGRect,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) {
+        var x = bounds.minX, y = bounds.minY, rowHeight: CGFloat = 0
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x + size.width > bounds.maxX, x > bounds.minX {
+                x = bounds.minX
+                y += rowHeight + spacing
+                rowHeight = 0
+            }
+            subview.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
     }
 }
 

@@ -62,15 +62,13 @@ final class TodayModel {
         }
     }
 
-    /// The heaviest action's original and reduced form, for the Minimum Day sheet.
-    var minimumPreview: (from: String, to: String)? {
-        guard
-            let candidate = actions
-                .filter({ !$0.optional && $0.minimumTitle != nil })
-                .max(by: { $0.estimatedMinutes < $1.estimatedMinutes }),
-            let reduced = candidate.minimumTitle
-        else { return nil }
-        return (candidate.title, reduced)
+    /// Original → reduced title for every action that has a smaller version,
+    /// for the Minimum Day sheet.
+    var reductions: [(from: String, to: String)] {
+        actions.compactMap { action in
+            guard !action.optional, let reduced = action.minimumTitle else { return nil }
+            return (action.title, reduced)
+        }
     }
 
     var topPriority: PriorityDTO? {

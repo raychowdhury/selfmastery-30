@@ -6,78 +6,78 @@ import SwiftUI
 /// plan is preserved so the day can be switched back. The copy is the whole
 /// feature: reduce the requirement, not the commitment.
 struct MinimumDaySheet: View {
-    let preview: (from: String, to: String)?
+    /// Original → reduced title for every action that has a smaller version.
+    let reductions: [(from: String, to: String)]
     let confirm: () -> Void
 
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            // Scrolls rather than clips: the title wraps to two lines, and at
-            // larger Dynamic Type sizes the whole sheet needs to move.
-            ScrollView {
-                VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
-                VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-                    Text("Keep the commitment.\nReduce the requirement.")
-                        .font(Theme.Typography.title)
-                        .fixedSize(horizontal: false, vertical: true)
+        // Scrolls rather than clips: the title wraps to two lines, and at
+        // larger Dynamic Type sizes the whole sheet needs to move.
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Keep the commitment.\nReduce the requirement.")
+                    .calmHeading(20)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
 
-                    Text("Today's plan can shrink to its smallest meaningful version. Showing up small still counts as showing up, and your consistency stays intact.")
-                        .font(.body)
-                        .foregroundStyle(Theme.Palette.secondaryText)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                Text("Today's plan shrinks to its smallest meaningful version. Showing up small still counts.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.Palette.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, Theme.Spacing.m)
 
-                if let preview {
-                    VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-                        ComparisonRow(label: "Original", value: preview.from, muted: true)
-                        Divider()
-                        ComparisonRow(label: "Minimum", value: preview.to, muted: false)
+                if !reductions.isEmpty {
+                    VStack(spacing: 0) {
+                        ForEach(Array(reductions.enumerated()), id: \.offset) { index, reduction in
+                            if index > 0 { CalmRule() }
+                            HStack(alignment: .top, spacing: Theme.Spacing.m) {
+                                Text(reduction.from)
+                                    .foregroundStyle(Theme.Palette.secondaryText)
+                                Spacer(minLength: Theme.Spacing.m)
+                                Text(reduction.to)
+                                    .multilineTextAlignment(.trailing)
+                            }
+                            .font(.system(size: 14))
+                            .padding(.vertical, Theme.Spacing.m)
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel(
+                                "Instead of \(reduction.from), today becomes \(reduction.to)"
+                            )
+                        }
                     }
-                    .surfaceCard()
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel("Instead of \(preview.from), today becomes \(preview.to)")
+                    .padding(.top, Theme.Spacing.xl)
                 }
 
                 VStack(spacing: Theme.Spacing.s) {
-                    PrimaryButton(title: "Switch to Minimum Day") {
+                    PrimaryButton(title: "Switch to a minimum day") {
                         confirm()
                         dismiss()
                     }
-                    SecondaryButton(title: "Keep Original Plan") { dismiss() }
+                    SecondaryButton(title: "Keep the original plan") { dismiss() }
                 }
-                .padding(.top, Theme.Spacing.l)
-                }
-                .padding(Theme.Spacing.xl)
+                .padding(.top, Theme.Spacing.xxl)
             }
-            .background(Theme.Palette.background)
-            .navigationBarTitleDisplayMode(.inline)
+            .padding(.horizontal, 28)
+            .padding(.top, Theme.Spacing.xxl)
+            .padding(.bottom, Theme.Spacing.xl)
+        }
+        .background(Theme.Palette.background)
+        .overlay(alignment: .top) {
+            // The Calm sheet's accent hairline along its top edge.
+            Theme.Palette.accent.opacity(0.3).frame(height: 1)
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
     }
 }
 
-struct ComparisonRow: View {
-    let label: String
-    let value: String
-    let muted: Bool
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(label.uppercased())
-                .font(Theme.Typography.eyebrow)
-                .foregroundStyle(muted ? Theme.Palette.secondaryText : Theme.Palette.accent)
-            Text(value)
-                .font(Theme.Typography.actionTitle)
-                .strikethrough(muted, color: Theme.Palette.secondaryText)
-                .foregroundStyle(muted ? Theme.Palette.secondaryText : Theme.Palette.text)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
 #Preview {
-    MinimumDaySheet(preview: (from: "Walk for 30 minutes", to: "Walk 5 minutes")) {}
+    Color.clear.sheet(isPresented: .constant(true)) {
+        MinimumDaySheet(reductions: [
+            (from: "Walk for 30 minutes", to: "Walk 5 minutes"),
+            (from: "Write one page", to: "Write one sentence"),
+        ]) {}
+    }
 }

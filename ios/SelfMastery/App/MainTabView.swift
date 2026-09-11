@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// The four destinations. Today is first and is what the app opens to.
+/// The Calm design's three destinations. Today is first and is what the app
+/// opens to; the calendar and progress screens are merged into "30 days".
 struct MainTabView: View {
     @Environment(AppEnvironment.self) private var environment
     @State private var selection: Destination = .today
@@ -8,7 +9,7 @@ struct MainTabView: View {
     /// Named `Destination` rather than `Tab`: SwiftUI now ships its own `Tab`
     /// type, and the builder below needs that name to resolve to Apple's.
     enum Destination: Hashable {
-        case today, calendar, progress, profile
+        case today, days, settings
     }
 
     var body: some View {
@@ -16,13 +17,10 @@ struct MainTabView: View {
             Tab("Today", systemImage: "checkmark.circle", value: Destination.today) {
                 TodayScreen()
             }
-            Tab("Calendar", systemImage: "calendar", value: Destination.calendar) {
-                CalendarScreen()
-            }
-            Tab("Progress", systemImage: "chart.bar", value: Destination.progress) {
+            Tab("30 days", systemImage: "circle.grid.3x3", value: Destination.days) {
                 ProgressScreen()
             }
-            Tab("Profile", systemImage: "person", value: Destination.profile) {
+            Tab("Settings", systemImage: "person", value: Destination.settings) {
                 ProfileScreen()
             }
         }

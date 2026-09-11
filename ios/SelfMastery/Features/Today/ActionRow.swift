@@ -1,10 +1,9 @@
 import SwiftUI
 
-/// One daily action.
-///
-/// Completed rows stay visible and are dimmed rather than removed — seeing what
-/// you have already done is most of the point. The tick itself keeps full
-/// contrast so it is obvious at a glance which way the row went.
+/// One daily action, at the Calm design's density: a title, a time, and a
+/// circle. Done actions dim to the muted colour — no strikethrough, no badges.
+/// Completed rows stay visible; seeing what you have already done is most of
+/// the point.
 struct ActionRow: View {
     let action: ActionDTO
     var isSaving = false
@@ -14,61 +13,57 @@ struct ActionRow: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        HStack(alignment: .top, spacing: Theme.Spacing.m) {
-            VStack(alignment: .leading, spacing: Theme.Spacing.s) {
-                Text(action.title)
-                    .font(Theme.Typography.actionTitle)
-                    .strikethrough(action.completed, color: Theme.Palette.secondaryText)
-                    .foregroundStyle(Theme.Palette.text)
-                    .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true)
+        VStack(spacing: 0) {
+            HStack(alignment: .center, spacing: Theme.Spacing.l) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(action.title)
+                        .font(.system(size: 17))
+                        .foregroundStyle(
+                            action.completed
+                                ? Theme.Palette.text.opacity(0.6)
+                                : Theme.Palette.text
+                        )
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
 
-                // No description line: the prototype's mobile take keeps rows to
-                // title + tags. The sentence still reaches VoiceOver below —
-                // spoken context costs no vertical space.
-
-                HStack(spacing: Theme.Spacing.s) {
-                    Chip(text: action.estimatedMinutes.formattedMinutes)
-                    if let pillar = action.pillarName {
-                        Chip(text: pillar, tint: Theme.Palette.accent, bordered: true)
-                    }
-                    if action.optional {
-                        Chip(text: "Optional")
-                    }
+                    Text(metaLine)
+                        .font(.system(size: 13))
+                        .foregroundStyle(Theme.Palette.secondaryText)
                 }
-            }
-            .opacity(action.completed ? 0.55 : 1)
 
-            Spacer(minLength: Theme.Spacing.s)
+                Spacer(minLength: Theme.Spacing.s)
 
-            Button(action: toggle) {
-                ZStack {
-                    if action.completed {
-                        Circle()
-                            .fill(Theme.Palette.accent)
-                            .frame(width: 30, height: 30)
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(.white)
-                    } else {
-                        Circle()
-                            .strokeBorder(Theme.Palette.separator, lineWidth: 1.5)
-                            .frame(width: 30, height: 30)
+                Button(action: toggle) {
+                    ZStack {
+                        if action.completed {
+                            Circle()
+                                .strokeBorder(Theme.Palette.accent, lineWidth: 1.5)
+                                .frame(width: 28, height: 28)
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(Theme.Palette.accent)
+                        } else {
+                            Circle()
+                                .strokeBorder(Theme.Palette.text.opacity(0.35), lineWidth: 1.5)
+                                .frame(width: 28, height: 28)
+                        }
+
+                        if isSaving {
+                            ProgressView().controlSize(.small)
+                        }
                     }
-
-                    if isSaving {
-                        ProgressView().controlSize(.small)
-                    }
+                    // A 44pt target around a 28pt control, per the HIG.
+                    .frame(width: 44, height: 44)
+                    .contentShape(.rect)
                 }
-                // A 44pt target around a 30pt control, per the HIG.
-                .frame(width: 44, height: 44)
-                .contentShape(.rect)
+                .buttonStyle(.plain)
+                .disabled(isReadOnly)
+                .animation(reduceMotion ? nil : .snappy(duration: 0.2), value: action.completed)
             }
-            .buttonStyle(.plain)
-            .disabled(isReadOnly)
-            .animation(reduceMotion ? nil : .snappy(duration: 0.2), value: action.completed)
+            .padding(.vertical, 18)
+
+            CalmRule()
         }
-        .padding(.vertical, Theme.Spacing.m)
         .contentShape(.rect)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabel)
@@ -78,9 +73,14 @@ struct ActionRow: View {
         .accessibilityAction { if !isReadOnly { toggle() } }
     }
 
+    private var metaLine: String {
+        action.optional
+            ? "\(action.estimatedMinutes) min · optional"
+            : "\(action.estimatedMinutes) min"
+    }
+
     private var accessibilityLabel: String {
         var parts = [action.title, action.estimatedMinutes.formattedMinutes]
-        if let pillar = action.pillarName { parts.append(pillar) }
         if action.optional { parts.append("Optional") }
         if let description = action.description, !description.isEmpty {
             parts.append(description)
@@ -92,9 +92,7 @@ struct ActionRow: View {
 #Preview("Action rows") {
     VStack(spacing: 0) {
         ActionRow(action: .preview(completed: false)) {}
-        Divider()
         ActionRow(action: .preview(completed: true)) {}
-        Divider()
         ActionRow(action: .preview(completed: false, optional: true)) {}
     }
     .padding()
